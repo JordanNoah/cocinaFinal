@@ -7,30 +7,17 @@ import 'package:flutter_tts/flutter_tts.dart';
 
 
 class PlayRecipie extends StatefulWidget {
-  PlayRecipie({Key key}) : super(key: key);
+  final data;
+  PlayRecipie({Key key,this.data}) : super(key: key);
 
   @override
-  _PlayRecipieState createState() => _PlayRecipieState();
+  _PlayRecipieState createState() => _PlayRecipieState(data);
 }
 
 class _PlayRecipieState extends State<PlayRecipie> {
-  final steps = [
-    {
-      "step":"1",
-      "description":"Cook pasta per pkg. directions, adding asparagus during last 2 minutes of cooking.",
-      "kind":"cooking"
-    },
-    {
-      "step":"2",
-      "description":"Meanwhile, in a large skillet, heat 2 Tbsp oil with garlic, leek, thyme, red pepper flakes, and 1/4 tsp salt on medium-low and cook, stirring occasionally, until very tender, 12 to 15 minutes.",
-      "kind":"preparation"
-    },
-    {
-      "step":"3",
-      "description":"Reserve 1 cup pasta cooking water, then drain pasta and asparagus and add to leek mixture. Add lemon juice, remaining 2 Tbsp oil, and 1/4 cup reserved cooking water, tossing to coat. Fold in half of Parmesan, adding more cooking water if pasta seems dry. Top with lemon zest and remaining Parmesan.",
-      "kind":"showend"
-    }
-  ];
+  var data;
+  _PlayRecipieState(this.data);
+  List steps = [];
   FlutterTts flutterTts = FlutterTts();
   final PageController _pageController = new PageController(
     initialPage: 0
@@ -45,9 +32,12 @@ class _PlayRecipieState extends State<PlayRecipie> {
   @override
   void initState() {
     // valores iniciales
+    
     super.initState();
     actualpage = 1;
     alert = DateTime.now().add(Duration(seconds: givenTime));
+    print("*****************************************");
+    steps = data["step_recipes"];
     descriptionStep = steps[0]["description"];
   }
   @override
@@ -91,7 +81,7 @@ class _PlayRecipieState extends State<PlayRecipie> {
                                       child: Row(
                                         mainAxisAlignment: MainAxisAlignment.spaceBetween,
                                         children: <Widget>[
-                                          Text("Arroz bien rico alv",style: TextStyle(color: Colors.white60,fontWeight: FontWeight.w500,fontSize: 15)),
+                                          Text(data["title"],style: TextStyle(color: Colors.white60,fontWeight: FontWeight.w500,fontSize: 15)),
                                           IconButton(
                                             icon: Icon(Icons.refresh),
                                             color: Colors.white,
