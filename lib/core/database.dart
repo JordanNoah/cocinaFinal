@@ -4,7 +4,7 @@ import 'package:food_size/models/ingredient.dart';
 import 'package:food_size/models/ingredientsRecipe_model.dart';
 import 'package:food_size/models/recipe_model.dart';
 import 'package:food_size/models/stepsRecipe_model.dart';
-import 'package:http/http.dart';
+import 'package:image_downloader/image_downloader.dart';
 import 'package:path/path.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:sqflite/sqflite.dart';
@@ -93,10 +93,17 @@ class ClientDatabaseProvider{
     return responseIngredients;
   }
 
-  Future getImage(int id) async {
+  getImage(int id) async {
     final db = await database;
     List responseImages = await db.rawQuery("SELECT * from image_recipes where idRecipe=$id");
     return responseImages;
+  }
+
+  getImgProfileRecipe(int id) async{
+    final db = await database;
+    List responseImages = await db.rawQuery("SELECT route FROM image_recipes where principal = 1 AND idRecipe = $id LIMIT 1");
+    print(responseImages.length);
+    return responseImages.length==0?null:responseImages[0]["route"];
   }
 
   addRecipeToDatabase (Recipe recipe,List steps,List imageRecipe,List multiRecipeIngredient) async {
@@ -108,7 +115,7 @@ class ClientDatabaseProvider{
         var responseRecipe = await trc.insert("recipes",recipe.toMap());
         var responseStep;
         var responseImg;
-        var responseIngredient;
+
         var responseRecipeIngre;
         for(final stepObj in steps){
           var step = StepsRecipe(
@@ -124,16 +131,12 @@ class ClientDatabaseProvider{
           var imgRecipe = ImageRecipe(
             idImage: imageRecipeObj["idImage"],
             principal: imageRecipeObj["principal"],
-            route: imageRecipeObj["route"],
+            route: imageRecipeObj["route"].replaceAll(r"\",'/').split("/").last,
             idRecipe: imageRecipeObj["idRecipe"]
           );
           responseImg = await trc.insert("image_recipes", imgRecipe.toMap());
-          
-          //////
           ///
-          ///
-           
-          ///
+          await insertImage(imageRecipeObj["route"]);
           ///
         }
 
@@ -149,11 +152,12 @@ class ClientDatabaseProvider{
           var ingredient = Ingredient(
             idIngredient: multiRecipeIngredientObj["ingredient"]["idIngredient"],
             name: multiRecipeIngredientObj["ingredient"]["name"],
-            routeImage: multiRecipeIngredientObj["ingredient"]["routeImage"],
+            routeImage: multiRecipeIngredientObj["ingredient"]["routeImage"].replaceAll(r"\",'/').split("/").last,
           );
+          await insertImage(multiRecipeIngredientObj["ingredient"]["routeImage"]);
           var existIngredient = await trc.query("ingredients",where: "idIngredient = ?", whereArgs: [ingredient.idIngredient]);
           if(existIngredient.isEmpty){
-            responseIngredient = await trc.insert("ingredients", ingredient.toMap());
+            await trc.insert("ingredients", ingredient.toMap());
           }
           responseRecipeIngre = await trc.insert("recipe_ingredients", recipeIngredient.toMap());
         }
@@ -169,6 +173,32 @@ class ClientDatabaseProvider{
     return(insert);
   }
 
+  insertImage(String route) async{
+    var arrayRoute =route.replaceAll(r"\",'/').split("/");
+    var type = arrayRoute[arrayRoute.length-2];
+    if(type!="ingredient"){
+      type="recipe";
+    }
+    print(type);
+    String nameImage = arrayRoute.last;
+      //////
+      ///
+      //
+      try {
+        // Saved with this method.
+        final Directory extDir = await getExternalStorageDirectory();
+        var direcImage = File(extDir.path+'/recipes/$type/$nameImage');
+        var exist = await direcImage.exists();
+        print(exist);
+        if (!exist) {
+          await ImageDownloader.downloadImage("http://192.168.100.54:3002/"+route.replaceAll(r"\",'/'),destination: AndroidDestinationType.custom(directory: "/recipes")..inExternalFilesDir()..subDirectory("$type/$nameImage"));
+        }
+      } catch (error) {
+        print(error);
+      }
+      ///
+  }
+
   removeRecipe(Recipe recipe) async {
     final db = await database;
     var remove = await db.transaction((trc) async{
@@ -176,9 +206,22 @@ class ClientDatabaseProvider{
       if(existRecipe.isNotEmpty){
         var removeRecipe = await trc.delete('recipes',where: "idRecipe = ?", whereArgs: [recipe.idRecipe]);
         var removeSteps = await trc.delete("steps_recipes",where: "idRecipe = ?", whereArgs: [recipe.idRecipe]);
+        //
+        var imagesRecipe = await trc.query("image_recipes",where: "idRecipe = ?", whereArgs: [recipe.idRecipe]);
+        //
         var removeImage = await trc.delete("image_recipes",where: "idRecipe = ?", whereArgs: [recipe.idRecipe]);
         var removeIngredientsRecipe = await trc.delete("recipe_ingredients",where: "idRecipe = ?", whereArgs: [recipe.idRecipe]);
         if(removeRecipe!=null&&removeSteps!=null&&removeImage!=null&&removeIngredientsRecipe!=null){
+          for(final images in imagesRecipe){
+            if(images["route"]!="default.jpg"){
+              final Directory extDir = await getExternalStorageDirectory();
+              var direcImage = File(extDir.path+'/recipe/recipes/'+images["route"]);
+              var exist = await direcImage.exists();
+              if(exist){
+                await direcImage.delete();
+              }
+            }
+          }
           return 1;
         }else{
           return 0;

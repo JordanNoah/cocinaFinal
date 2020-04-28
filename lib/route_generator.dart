@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:food_size/src/pages/categories.dart';
 import 'package:food_size/src/pages/foods.dart';
 import 'package:food_size/src/pages/playRecipie.dart';
 import 'package:food_size/src/pages/showFood.dart';
@@ -25,6 +26,13 @@ class RouterGenerator{
           )
         );
         break;
+      case '/categorie':
+        return MaterialPageRoute(
+          builder: (_) => Categories(
+            data:args
+          )
+        );
+        break;  
       default:
 
       return _errorRoute();

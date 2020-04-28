@@ -14,8 +14,8 @@ class Foods extends StatefulWidget {
 }
 
 class _FoodsState extends State<Foods> {
-  PageController _controller = PageController(initialPage: 0);
   bool checkConnection = false;
+  PageController _controller = PageController(initialPage:0);
   @override
   void initState(){
     super.initState();
@@ -33,14 +33,18 @@ class _FoodsState extends State<Foods> {
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: Colors.white,
-      body: PageView(
-        scrollDirection: Axis.horizontal,
-        controller: _controller,
-        physics: NeverScrollableScrollPhysics(),
+      body: Stack(
         children: <Widget>[
-          checkConnection?HomeFood():notConnection(),
-          Download(),
-          checkConnection?Favorites():notConnection()
+          PageView(
+            scrollDirection: Axis.horizontal,
+            controller: _controller,
+            physics: NeverScrollableScrollPhysics(),
+            children: <Widget>[
+              checkConnection?HomeFood():notConnection(),
+              Download(),
+              checkConnection?Favorites():notConnection()
+            ],
+          ),
         ],
       ),
       floatingActionButton: FloatingActionButton(onPressed: (){},
@@ -56,13 +60,14 @@ class _FoodsState extends State<Foods> {
                 alignment: Alignment.bottomCenter,
                 radius: 100,
                 toggleButtonMargin: 0.0,
-                toggleButtonPadding: 0.0,
+                toggleButtonPadding: 10.0,
                 toggleButtonElevation: 0,
                 toggleButtonIconColor: Colors.transparent,
                 toggleButtonColor: Colors.transparent,
                 items: [
                     MenuItem(
                       iconSize: 20.0,
+                      elevation: 20,
                       icon: Icons.supervised_user_circle,
                       color: Colors.green,
                       onTap: () {},
@@ -71,6 +76,7 @@ class _FoodsState extends State<Foods> {
                     ),
                     MenuItem(
                       iconSize: 20.0,
+                      elevation: 20,
                       icon: Icons.fastfood,
                       color: Colors.blue,
                       onTap: () {},
@@ -79,6 +85,7 @@ class _FoodsState extends State<Foods> {
                     ),
                     MenuItem(
                       iconSize: 20.0,
+                      elevation: 20,
                       icon: Icons.restaurant_menu,
                       color: Colors.orange,
                       onTap: () {},

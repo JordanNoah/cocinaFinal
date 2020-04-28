@@ -1,12 +1,13 @@
 import 'dart:convert';
+import 'dart:io';
 
+import 'package:data_connection_checker/data_connection_checker.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_swiper/flutter_swiper.dart';
 import 'package:food_size/core/database.dart';
 import 'package:food_size/models/recipe_model.dart';
 import 'package:food_size/models/stepsRecipe_model.dart';
-import 'package:image_downloader/image_downloader.dart';
-// import 'package:food_size/models/recipe_model.dart';
+import 'package:path_provider/path_provider.dart';
 import 'package:pimp_my_button/pimp_my_button.dart';
 import 'package:random_color/random_color.dart';
 import 'package:http/http.dart' as http;
@@ -27,7 +28,9 @@ class _ShowFoodState extends State<ShowFood> {
   bool itsDownloaded = false;
   bool downloadImg = false;
   _ShowFoodState(this.data);
-
+  Directory extDirec;
+  bool checkConnection = false;
+  
   var recipe;
   List imagesRecipe=[];
   List recipeIngredients = [];
@@ -108,7 +111,11 @@ class _ShowFoodState extends State<ShowFood> {
           }
         });
       }
+      final Directory extDir = await getExternalStorageDirectory();
+      bool actualStateConnection = await DataConnectionChecker().hasConnection;
       setState(() {
+        extDirec = extDir;
+        checkConnection=actualStateConnection;
         recipe={"idRecipe":(recipeClass.idRecipe),"description":recipeClass.description,"title":recipeClass.title};
       });
     }
@@ -158,7 +165,17 @@ class _ShowFoodState extends State<ShowFood> {
                     Container(
                       width: MediaQuery.of(context).size.width,
                       height: 280,
-                      child: Image.network("http://192.168.100.54:3002/"+(imagesRecipe[0]["route"]).replaceAll(r"\",'/'),fit: BoxFit.cover,),
+                      child: data[1]
+                        ?
+                          Image.network("http://192.168.100.54:3002/"+(imagesRecipe[0]["route"]).replaceAll(r"\",'/'),fit: BoxFit.cover,)
+                            :
+                              FutureBuilder(
+                                future: ClientDatabaseProvider.db.getImgProfileRecipe(recipe["idRecipe"]),
+                                builder: (BuildContext context, AsyncSnapshot snapshot) {
+                                  var image = snapshot.data!=null ? File(extDirec.path+'/recipes/recipe/${snapshot.data}'):null;
+                                  return image == null ? Center(child: CircularProgressIndicator(),): Image.file(image,fit: BoxFit.cover,);
+                                },
+                              ),
                     ),
                     Container(
                       width: MediaQuery.of(context).size.width,
@@ -314,11 +331,12 @@ class _ShowFoodState extends State<ShowFood> {
                             child: Container(
                               decoration: BoxDecoration(
                                 borderRadius: BorderRadius.circular(10),
-                                image: DecorationImage(
-                                  image: NetworkImage("http://192.168.100.54:3002/"+(recipeIngredients[index]["ingredient"]["routeImage"]).replaceAll(r"\",'/')),
-                                  fit: BoxFit.cover
-                                )
                               ),
+                              child: data[1]
+                                ?
+                                  Image.network("http://192.168.100.54:3002/"+(recipeIngredients[index]["ingredient"]["routeImage"]).replaceAll(r"\",'/'),fit: BoxFit.cover,)
+                                    :
+                                      Image.file(File(extDirec.path+'/recipes/ingredient/'+recipeIngredients[index]["ingredient"]["routeImage"]),fit: BoxFit.cover,)
                             ),
                           ),
                           Expanded(
@@ -409,7 +427,7 @@ class _ShowFoodState extends State<ShowFood> {
               childCount: stepsRecipe.length
             ),
           ),
-          SliverList(
+          data[1] ? SliverList(
             delegate: SliverChildListDelegate([
               Center(
                 child: Container(
@@ -523,7 +541,7 @@ class _ShowFoodState extends State<ShowFood> {
                 ),
               ),
             ]),
-          ),
+          ):SliverList(delegate: SliverChildListDelegate([])),
         ],
       ),
     );
@@ -629,11 +647,15 @@ class _ShowFoodState extends State<ShowFood> {
                   Container(
                     height: 230,
                     width: MediaQuery.of(context).size.width,
-                    child: Image.network("http://192.168.100.54:3002/"+(ingredient["ingredient"]["routeImage"]).replaceAll(r"\",'/').toString(),fit: BoxFit.cover,),
+                    child: data[1]
+                      ?
+                        Image.network("http://192.168.100.54:3002/"+(ingredient["ingredient"]["routeImage"]).replaceAll(r"\",'/').toString(),fit: BoxFit.cover,)
+                          :
+                            Image.file(File(extDirec.path+'/recipes/ingredient/'+ingredient["ingredient"]["routeImage"])),
                   ),
                   Container(
                     padding: EdgeInsets.all(20),
-                    child: Text(ingredient["quantity"].toString()),
+                    child: Text(newCant(ingredient["quantity"]).toString()),
                   )
                 ],
               ),
@@ -653,68 +675,45 @@ class _ShowFoodState extends State<ShowFood> {
     var removed = await ClientDatabaseProvider.db.removeRecipe(recipes);
     // 1 means success, 2 means error while remove, 3 means reicipe dont exist in database
     if(removed==1 || removed==3){
-      setState(() {
-        itsDownloaded=false;
-      });
       Navigator.of(context).pop();
+      if(!data[1]){
+        Navigator.pushNamed(context, '/');
+      }else{
+        setState(() {
+          itsDownloaded=false;
+        });
+      }
     }
   }
-
-  // Future<File> getImages(String filename){
-    
-  // }
 
   saveRecipe(BuildContext context,controller) async {
-    try {
-    // Saved with this method.
-    var imageId = await ImageDownloader.downloadImage("https://raw.githubusercontent.com/wiki/ko2ic/image_downloader/images/flutter.png");
-    print(imageId);
-    if (imageId == null) {
-      return;
-    }
+    var recipes = Recipe(
+      idRecipe: recipe["idRecipe"],
+      title: recipe["title"],
+      description: recipe["description"]
+    );
 
-    // Below is a method of obtaining saved image information.
-    var fileName = await ImageDownloader.findName(imageId);
-    var path = await ImageDownloader.findPath(imageId);
-    var size = await ImageDownloader.findByteSize(imageId);
-    var mimeType = await ImageDownloader.findMimeType(imageId);
-    print(fileName);
-    print(path);
-    print(size);
-    print(mimeType);
-  } catch (error) {
-    print(error);
-  }
-
-
-
-    // var recipes = Recipe(
-    //   idRecipe: recipe["idRecipe"],
-    //   title: recipe["title"],
-    //   description: recipe["description"]
-    // );
-
-    // var existRecipe = await ClientDatabaseProvider.db.getRecipeWithId(recipes.idRecipe);
-    // if (existRecipe==null) {
-    //   List multiSteps = recipe["step_recipes"];
-    //   List multiRecipeIngredient = recipe["recipe_ingredients"];
-    //   List imageRecipe = recipe["image_recipes"];
-    //   var response = await ClientDatabaseProvider.db.addRecipeToDatabase(recipes,multiSteps,imageRecipe,multiRecipeIngredient);
+    var existRecipe = await ClientDatabaseProvider.db.getRecipeWithId(recipes.idRecipe);
+    if (existRecipe==null) {
+      List multiSteps = recipe["step_recipes"];
+      List multiRecipeIngredient = recipe["recipe_ingredients"];
+      List imageRecipe = recipe["image_recipes"];
+      var response = await ClientDatabaseProvider.db.addRecipeToDatabase(recipes,multiSteps,imageRecipe,multiRecipeIngredient);
       
-    //   if (response==1) {
-    //     setState(() {
-    //       itsDownloaded=true;
-    //     });
-    //     controller.forward(from: 0.0);
-    //     Navigator.of(context).pop();
-    //   } else {
-    //     setState(() {
-    //       itsDownloaded=true;
-    //     });
-    //     controller.forward(from: 0.0);
-    //     Navigator.of(context).pop();
-    //   }
-    // }  
+      if (response==1) {
+        setState(() {
+          itsDownloaded=true;
+        });
+        controller.forward(from: 0.0);
+        Navigator.of(context).pop();
+      } else {
+        setState(() {
+          itsDownloaded=true;
+        });
+        controller.forward(from: 0.0);
+        Navigator.of(context).pop();
+      }
+    }  
   }
 
   newCant(String descIngredient){

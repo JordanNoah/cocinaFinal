@@ -27,7 +27,6 @@ class _HomeFoodState extends State<HomeFood> {
   void initState() { 
     super.initState();
     loadAllLists();
-    _color = _randomColor.randomColor();
   }
 
   loadAllLists(){
@@ -37,37 +36,61 @@ class _HomeFoodState extends State<HomeFood> {
   }
 
   Future loadNewRecipes() async{
-    http.Response  responseNewRecipe= await http.get('http://192.168.100.54:3002/api/getLastsRecipe?idUser=1');
-    String respNewRecipes = responseNewRecipe.body;
-    final jsonNewRecipe = jsonDecode(respNewRecipes)["message"];
-    print(jsonNewRecipe);
-    setState(() {
-      newRecipes = jsonNewRecipe;
-    });
-    for (var i = 0; i < newRecipes.length; i++) {
-      if(newRecipes[i]["liked_recipes"].length!=0){
-        likedNew.add(newRecipes[i]["idRecipe"]);
+    try {
+      http.Response  responseNewRecipe= await http.get('http://192.168.100.54:3002/api/getLastsRecipe?idUser=1');
+      String respNewRecipes = responseNewRecipe.body;
+      final jsonNewRecipe = jsonDecode(respNewRecipes)["message"];
+      print(jsonNewRecipe);
+      setState(() {
+        newRecipes = jsonNewRecipe;
+      });
+      for (var i = 0; i < newRecipes.length; i++) {
+        if(newRecipes[i]["liked_recipes"].length!=0){
+          likedNew.add(newRecipes[i]["idRecipe"]);
+        }
+      }
+      print(likedNew);
+    } on Exception catch (e) {
+      if(e.toString().contains('SocketException')){
+        setState(() {
+          newRecipes=null;
+        });
       }
     }
-    print(likedNew);
   }
 
   Future mostVotedRecipes() async{
-    http.Response responseMostVotedRecipe = await http.get('http://192.168.100.54:3002/api/getLikedRecipe?idUser=1');
-    String respMostVotedRecipe = responseMostVotedRecipe.body;
-    final jsonMostVotedRecipe = jsonDecode(respMostVotedRecipe)["message"];
-    setState(() {
-      mostVotedRecipe = jsonMostVotedRecipe;
-    });
+    try {
+      http.Response responseMostVotedRecipe = await http.get('http://192.168.100.54:3002/api/getLikedRecipe?idUser=1');
+      String respMostVotedRecipe = responseMostVotedRecipe.body;
+      final jsonMostVotedRecipe = jsonDecode(respMostVotedRecipe)["message"];
+      setState(() {
+        mostVotedRecipe = jsonMostVotedRecipe;
+      });
+    } on Exception catch (e) {
+      if(e.toString().contains('SocketException')){
+        setState(() {
+          mostVotedRecipe = null;
+        });
+      }
+    }
   }
 
   Future randomRecipes() async{
-    http.Response responseRandomRecipe = await http.get('http://192.168.100.54:3002/api/getLikedRecipe?idUser=1');
-    String respRandomRecipe = responseRandomRecipe.body;
-    final jsonRandomRecipe = jsonDecode(respRandomRecipe)["message"];
-    setState(() {
-      randomRecipe=jsonRandomRecipe;
-    });
+    try {
+      http.Response responseRandomRecipe = await http.get('http://192.168.100.54:3002/api/getLikedRecipe?idUser=1');
+      String respRandomRecipe = responseRandomRecipe.body;
+      final jsonRandomRecipe = jsonDecode(respRandomRecipe)["message"];
+      setState(() {
+        randomRecipe=jsonRandomRecipe;
+      });
+    } on Exception catch (e) {
+      if(e.toString().contains('SocketException')){
+        setState(() {
+          randomRecipe = null;
+        });
+      }
+    }
   }
 
   Future setLiked(idrecipe,actualState) async {
@@ -146,7 +169,7 @@ class _HomeFoodState extends State<HomeFood> {
                       ),
                       Container(
                         height: 245,
-                        child: newRecipes.length != 0 ? Swiper(
+                        child: newRecipes != null ? Swiper(
                           itemCount: newRecipes.length,
                           viewportFraction: 0.73,
                           scale: 0.80,
@@ -255,15 +278,15 @@ class _HomeFoodState extends State<HomeFood> {
                         ):Center(
                           child: Column(
                             crossAxisAlignment: CrossAxisAlignment.center,
-                            mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                            mainAxisAlignment: MainAxisAlignment.center,
                             children: <Widget>[
                               Text(
-                                "Refrescar datos",
-                                style: TextStyle(fontSize: 40),
+                                "Refresh new recipes",
+                                style: TextStyle(fontSize: 30,),textAlign: TextAlign.center,
                               ),
                               IconButton(
                                 icon: Icon(Icons.refresh),
-                                onPressed: (){loadNewRecipes();},
+                                onPressed: (){randomRecipes();},
                                 iconSize: 50,
                               )
                             ],
@@ -286,7 +309,7 @@ class _HomeFoodState extends State<HomeFood> {
                 Container(
                   margin: EdgeInsets.only(top:10),
                   height: 210,
-                  child: ListView.builder(
+                  child: mostVotedRecipe!=null ? ListView.builder(
                     itemCount: mostVotedRecipe.length,
                     scrollDirection: Axis.horizontal,
                     itemBuilder: (BuildContext context, int index) {
@@ -337,6 +360,22 @@ class _HomeFoodState extends State<HomeFood> {
                         ],
                       );
                     },
+                  ):Center(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.center,
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: <Widget>[
+                        Text(
+                          "Refresh most voted",
+                          style: TextStyle(fontSize: 30,),textAlign: TextAlign.center,
+                        ),
+                        IconButton(
+                          icon: Icon(Icons.refresh),
+                          onPressed: (){mostVotedRecipes();},
+                          iconSize: 50,
+                        )
+                      ],
+                    ),
                   ),
                 ),
                 Container(
@@ -370,13 +409,13 @@ class _HomeFoodState extends State<HomeFood> {
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: <Widget>[
                       Text("Random",style: TextStyle(fontWeight: FontWeight.bold,color: Colors.blueGrey,fontSize: 16),),
-                      Text("Show all",style: TextStyle(color: Colors.blueAccent),)
+                      Text("Show all",style: TextStyle(color: Colors.blueAccent),),
                     ],
                   ),
                 ),
               ]),
             ),
-            SliverGrid(
+            randomRecipe!=null ? SliverGrid(
               delegate: SliverChildBuilderDelegate(
                 (BuildContext context, index){
                   return Container(
@@ -438,7 +477,31 @@ class _HomeFoodState extends State<HomeFood> {
                 crossAxisSpacing: 4,
                 childAspectRatio: 0.8
               )
-            ),
+            ):SliverList(
+              delegate: SliverChildListDelegate([
+                Container(
+                  height: 200,
+                  width: MediaQuery.of(context).size.width,
+                  child: Center(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.center,
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: <Widget>[
+                        Text(
+                          "Refresh random",
+                          style: TextStyle(fontSize: 30,),textAlign: TextAlign.center,
+                        ),
+                        IconButton(
+                          icon: Icon(Icons.refresh),
+                          onPressed: (){loadNewRecipes();},
+                          iconSize: 50,
+                        )
+                      ],
+                    ),
+                  ),
+                )
+              ]),
+            )
           ],
         ),
       ),
@@ -446,46 +509,50 @@ class _HomeFoodState extends State<HomeFood> {
   }
 
   Widget category(categoriesName ,Icon iconName){
-    return Container(
-      margin: EdgeInsets.all(5),
-      width: 75,
-      height: 100,
-      decoration: BoxDecoration(
-        borderRadius: BorderRadius.circular(40)
-      ),
-      child: Column(
-        children: <Widget>[
-          Container(
-            width: 75,
-            height: 75,
-            decoration: BoxDecoration(
-              borderRadius: BorderRadius.circular(40),
-              color: _color,
-            ),
-            child: Stack(
-              children: <Widget>[
-                Container(
-                  height: 75,
-                  width: 75,
-                  decoration: BoxDecoration(
-                    borderRadius: BorderRadius.circular(40),
-                    color: Colors.black45,
+    _color = _randomColor.randomColor();
+    return GestureDetector(
+      onTap: (){Navigator.pushNamed(context, '/categorie',arguments: [categoriesName]);},
+      child: Container(
+        margin: EdgeInsets.all(5),
+        width: 75,
+        height: 100,
+        decoration: BoxDecoration(
+          borderRadius: BorderRadius.circular(40)
+        ),
+        child: Column(
+          children: <Widget>[
+            Container(
+              width: 75,
+              height: 75,
+              decoration: BoxDecoration(
+                borderRadius: BorderRadius.circular(40),
+                color: _color,
+              ),
+              child: Stack(
+                children: <Widget>[
+                  Container(
+                    height: 75,
+                    width: 75,
+                    decoration: BoxDecoration(
+                      borderRadius: BorderRadius.circular(40),
+                      color: Colors.black45,
+                    ),
                   ),
-                ),
-                Center(
-                  child: iconName,
-                ),
-              ],
-            )
-          ),
-          Container(
-            margin: EdgeInsets.only(top:5),
-            child: Center(
-              child: Text(categoriesName,overflow: TextOverflow.ellipsis,),
+                  Center(
+                    child: iconName,
+                  ),
+                ],
+              )
             ),
-          )
-        ],
-      )
+            Container(
+              margin: EdgeInsets.only(top:5),
+              child: Center(
+                child: Text(categoriesName,overflow: TextOverflow.ellipsis,),
+              ),
+            )
+          ],
+        )
+      ),
     );
   }
 }
