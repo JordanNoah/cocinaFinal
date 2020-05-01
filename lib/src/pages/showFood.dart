@@ -1,7 +1,9 @@
 import 'dart:convert';
 import 'dart:io';
 
+import 'package:cached_network_image/cached_network_image.dart';
 import 'package:data_connection_checker/data_connection_checker.dart';
+import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_swiper/flutter_swiper.dart';
 import 'package:food_size/core/database.dart';
@@ -45,7 +47,6 @@ class _ShowFoodState extends State<ShowFood> {
   void initState() { 
     super.initState();
     loadRecipe();
-    randomRecipes();
     _color = _randomColor.randomColor();
   }
 
@@ -124,22 +125,19 @@ class _ShowFoodState extends State<ShowFood> {
   }
   
   Future randomRecipes() async{
-    if(data[1]){
-      http.Response responseRandomRecipe = await http.get('http://192.168.100.54:3002/api/getLikedRecipe');
-      String respRandomRecipe = responseRandomRecipe.body;
-      final jsonRandomRecipe = jsonDecode(respRandomRecipe)["message"];
-      setState(() {
-        randomRecipe=jsonRandomRecipe;
-      });
-    }else{
-      setState(() {
-        randomRecipe=[];
-      });
+    try {
+      http.Response responseNewRecipe = await http.get('http://192.168.100.54:3002/api/getLastsRecipe?idUser=1');
+      if(responseNewRecipe.statusCode == HttpStatus.ok){
+        var result = jsonDecode(responseNewRecipe.body)["message"];
+        return result;
+      }
+    } on Exception catch (e) {
+      if(e.toString().contains('SocketException')){
+        setState(() {
+          randomRecipe = null;
+        });
+      }
     }
-  }
-
-  downloadImages(){
-
   }
 
   Widget build(BuildContext context) {
@@ -155,9 +153,9 @@ class _ShowFoodState extends State<ShowFood> {
             flexibleSpace: FlexibleSpaceBar(
               title: ConstrainedBox(
                 constraints: BoxConstraints(
-                  maxWidth: MediaQuery.of(context).size.width - 160
+                  maxWidth: MediaQuery.of(context).size.width - 200
                 ),
-                child: Text(recipe["title"]),
+                child: Text(recipe["title"],overflow: TextOverflow.visible,),
               ),
               background: Container(
                 child: Stack(
@@ -167,7 +165,13 @@ class _ShowFoodState extends State<ShowFood> {
                       height: 280,
                       child: data[1]
                         ?
-                          Image.network("http://192.168.100.54:3002/"+(imagesRecipe[0]["route"]).replaceAll(r"\",'/'),fit: BoxFit.cover,)
+                          CachedNetworkImage(
+                            imageUrl:("http://192.168.100.54:3002/"+(imagesRecipe[0]["route"]).replaceAll(r"\",'/')),
+                            progressIndicatorBuilder: (context, url, downloadProgress) => 
+                              Center(child: CircularProgressIndicator(value: downloadProgress.progress),),
+                            errorWidget: (context, url, error) => Center(child: Icon(Icons.error),),
+                            fit: BoxFit.cover,
+                          )
                             :
                               FutureBuilder(
                                 future: ClientDatabaseProvider.db.getImgProfileRecipe(recipe["idRecipe"]),
@@ -232,6 +236,76 @@ class _ShowFoodState extends State<ShowFood> {
                           )
                         ],
                       ),
+                    ),
+                    Container(
+                      margin: EdgeInsets.only(top: 20),
+                      child: Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        children: <Widget>[
+                          Row(
+                            children: <Widget>[
+                              Icon(Icons.av_timer,color: Colors.grey,),
+                              SizedBox(width: 2.0,),
+                              Text("30~40 min",style: TextStyle(color: Colors.grey,fontWeight: FontWeight.bold,fontSize: 10),),
+                            ],
+                          ),
+                          Row(
+                            children: <Widget>[
+                              Container(
+                                decoration: BoxDecoration(
+                                  color: Colors.grey,
+                                  borderRadius: BorderRadius.circular(40.0)
+                                ),
+                                child: Row(
+                                  children: <Widget>[
+                                    Container(
+                                      height: 10,
+                                      width: 16.66,
+                                      decoration: BoxDecoration(
+                                        color: Colors.orange,
+                                        borderRadius: BorderRadius.only(
+                                          topLeft: Radius.circular(40.0),
+                                          bottomLeft:Radius.circular(40.0), 
+                                        )
+                                      ),
+                                    ),
+                                    Container(
+                                      height: 10,
+                                      width: 16.66,
+                                      decoration: BoxDecoration(
+                                        color: Colors.orange,
+                                        borderRadius: BorderRadius.only(
+                                          topRight: Radius.circular(40.0),
+                                          bottomRight:Radius.circular(40.0), 
+                                        )
+                                      ),
+                                    ),
+                                    Container(
+                                      height: 10,
+                                      width: 16.66,
+                                      decoration: BoxDecoration(
+                                        color: Colors.transparent,
+                                        borderRadius: BorderRadius.only(
+                                          topRight: Radius.circular(40.0),
+                                          bottomRight:Radius.circular(40.0), 
+                                        )
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                              ),
+                              SizedBox(width: 10,),
+                              Container(
+                                child: Text("Hard",style: TextStyle(color: Colors.red,fontWeight: FontWeight.bold,letterSpacing: 1),),
+                              ),
+                            ],
+                          )
+                        ],
+                      ),
+                    ),
+                    Container(
+                      margin: EdgeInsets.only(top:15),
+                      child: Text("Number of dishes",style: TextStyle(color: Colors.grey,fontSize: 24,fontWeight: FontWeight.w600,letterSpacing: 1),),
                     ),
                     Container(
                       margin: EdgeInsets.only(top: 20),
@@ -334,7 +408,13 @@ class _ShowFoodState extends State<ShowFood> {
                               ),
                               child: data[1]
                                 ?
-                                  Image.network("http://192.168.100.54:3002/"+(recipeIngredients[index]["ingredient"]["routeImage"]).replaceAll(r"\",'/'),fit: BoxFit.cover,)
+                                  CachedNetworkImage(
+                                    imageUrl:("http://192.168.100.54:3002/"+(recipeIngredients[index]["ingredient"]["routeImage"]).replaceAll(r"\",'/')),
+                                    progressIndicatorBuilder: (context, url, downloadProgress) => 
+                                      Center(child: CircularProgressIndicator(value: downloadProgress.progress),),
+                                    errorWidget: (context, url, error) => Center(child: Icon(Icons.error),),
+                                    fit: BoxFit.cover,
+                                  )
                                     :
                                       Image.file(File(extDirec.path+'/recipes/ingredient/'+recipeIngredients[index]["ingredient"]["routeImage"]),fit: BoxFit.cover,)
                             ),
@@ -348,7 +428,7 @@ class _ShowFoodState extends State<ShowFood> {
                                 crossAxisAlignment: CrossAxisAlignment.start,
                                 children: <Widget>[
                                   Text(recipeIngredients[index]["ingredient"]["name"],overflow: TextOverflow.ellipsis,style: TextStyle(fontWeight: FontWeight.bold,fontSize: 16),),
-                                  Text(newCant(recipeIngredients[index]["quantity"]).toString(),overflow: TextOverflow.ellipsis,)
+                                  Text((recipeIngredients[index]["quantity"]).toString(),overflow: TextOverflow.ellipsis,)
                                 ],
                               ),
                             ),
@@ -439,75 +519,148 @@ class _ShowFoodState extends State<ShowFood> {
                 margin: EdgeInsets.only(top:10),
                 height: 245,
                 width: MediaQuery.of(context).size.width,
-                child: Swiper(
-                  itemCount: randomRecipe.length,
-                  viewportFraction: 0.75,
-                  scale: 1,
-                  itemBuilder: (BuildContext context,int index){
-                    return ClipRRect(
-                      child: GestureDetector(
-                        onTap: (){Navigator.pushNamed(context, "showfood");},
-                        child: Card(
-                          elevation:0,
-                          shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(20.0),
-                          ),
-                          child: Container(
-                            child: Stack(
-                              children: <Widget>[
-                                Column(
-                                  crossAxisAlignment: CrossAxisAlignment.stretch,
-                                  children: <Widget>[
-                                    Flexible(
-                                      flex: 2,
-                                      child: Container(
-                                        decoration: BoxDecoration(
-                                          borderRadius: BorderRadius.circular(19),
-                                          image: DecorationImage(
-                                            image: NetworkImage("http://192.168.100.54:3002/"+(randomRecipe[index]["image_recipes"][0]["route"]).replaceAll(r"\",'/')),
-                                            fit: BoxFit.cover
-                                          )
-                                        ),
-                                      ),
-                                    ),
-                                    Flexible(
-                                      flex: 1,
-                                      child: Container(
-                                        decoration: BoxDecoration(
-                                          borderRadius: BorderRadius.circular(19)
-                                        ),
-                                        child: Row(
+                child: FutureBuilder(
+                  future: randomRecipes(),
+                  builder: (BuildContext context, AsyncSnapshot snapshot) {
+                    if (snapshot.hasError) {
+                        return Center(child: Text('Error'));
+                    }
+                    if (snapshot.connectionState == ConnectionState.done) {
+                        var recipe = snapshot.data;
+                        return Swiper(
+                          itemCount: recipe.length,
+                          viewportFraction: 0.75,
+                          scale: 1,
+                          itemBuilder: (BuildContext context,int index){
+                            return ClipRRect(
+                              child: GestureDetector(
+                                onTap: (){Navigator.pushNamed(context, "showfood");},
+                                child: Card(
+                                  elevation:0,
+                                  shape: RoundedRectangleBorder(
+                                    borderRadius: BorderRadius.circular(20.0),
+                                  ),
+                                  child: Container(
+                                    child: Stack(
+                                      children: <Widget>[
+                                        Column(
+                                          crossAxisAlignment: CrossAxisAlignment.stretch,
                                           children: <Widget>[
                                             Flexible(
-                                              flex: 5,
+                                              flex: 2,
                                               child: Container(
-                                                padding: EdgeInsets.symmetric(horizontal: 10,vertical: 10),
-                                                child: Row(
-                                                  children: <Widget>[
-                                                    Flexible(
-                                                      child: Column(
-                                                        mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                                                        children: <Widget>[
-                                                          Text(randomRecipe[index]["title"],overflow: TextOverflow.ellipsis,style: TextStyle(color: Colors.blueGrey,fontWeight: FontWeight.w500,fontSize: 14),),
-                                                          Text(randomRecipe[index]["description"],overflow: TextOverflow.ellipsis,style: TextStyle(color: Colors.grey,fontSize: 12.9),)
-                                                        ],
-                                                      ),
-                                                    )
-                                                  ],
+                                                decoration: BoxDecoration(
+                                                  borderRadius: BorderRadius.circular(19),
+                                                ),
+                                                child: CachedNetworkImage(
+                                                  imageUrl: "http://192.168.100.54:3002/"+(recipe[index]["image_recipes"][0]["route"]).replaceAll(r"\",'/'),
+                                                  progressIndicatorBuilder: (context, url, downloadProgress) => 
+                                                    Center(child: CircularProgressIndicator(value: downloadProgress.progress),),
+                                                  errorWidget: (context, url, error) => Center(child: Icon(Icons.error),),
+                                                  fit: BoxFit.cover,
                                                 )
                                               ),
                                             ),
                                             Flexible(
-                                              flex: 4,
+                                              flex: 1,
                                               child: Container(
-                                                padding: EdgeInsets.all(2),
+                                                margin: EdgeInsets.only(right: 10),
+                                                decoration: BoxDecoration(
+                                                  borderRadius: BorderRadius.circular(19)
+                                                ),
                                                 child: Row(
                                                   mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                                                  crossAxisAlignment: CrossAxisAlignment.center,
                                                   children: <Widget>[
-                                                    Icon(Icons.timer,color: Colors.grey,),
                                                     Flexible(
-                                                      child: Text("30~40 min",style: TextStyle(color: Colors.grey,fontWeight: FontWeight.bold),),
+                                                      flex: 5,
+                                                      child: Container(
+                                                        padding: EdgeInsets.symmetric(horizontal: 10,vertical: 10),
+                                                        child: Row(
+                                                          children: <Widget>[
+                                                            Flexible(
+                                                              child: Column(
+                                                                mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                                                                children: <Widget>[
+                                                                  Text(recipe[index]["title"],overflow: TextOverflow.ellipsis,style: TextStyle(color: Colors.blueGrey,fontWeight: FontWeight.w500,fontSize: 14),),
+                                                                  Text(recipe[index]["description"],overflow: TextOverflow.ellipsis,style: TextStyle(color: Colors.grey,fontSize: 12.9),)
+                                                                ],
+                                                              ),
+                                                            )
+                                                          ],
+                                                        )
+                                                      ),
+                                                    ),
+                                                    Flexible(
+                                                      flex: 4,
+                                                      child: Container(
+                                                        child: Column(
+                                                          mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                                                          children: <Widget>[
+                                                            Row(
+                                                              mainAxisAlignment: MainAxisAlignment.end,
+                                                              children: <Widget>[
+                                                                Container(
+                                                                  decoration: BoxDecoration(
+                                                                    color: Colors.grey,
+                                                                    borderRadius: BorderRadius.circular(40.0)
+                                                                  ),
+                                                                  child: Row(
+                                                                    children: <Widget>[
+                                                                      Container(
+                                                                        height: 10,
+                                                                        width: 16.66,
+                                                                        decoration: BoxDecoration(
+                                                                          color: Colors.orange,
+                                                                          borderRadius: BorderRadius.only(
+                                                                            topLeft: Radius.circular(40.0),
+                                                                            bottomLeft:Radius.circular(40.0), 
+                                                                          )
+                                                                        ),
+                                                                      ),
+                                                                      Container(
+                                                                        height: 10,
+                                                                        width: 16.66,
+                                                                        decoration: BoxDecoration(
+                                                                          color: Colors.orange,
+                                                                          borderRadius: BorderRadius.only(
+                                                                            topRight: Radius.circular(40.0),
+                                                                            bottomRight:Radius.circular(40.0), 
+                                                                          )
+                                                                        ),
+                                                                      ),
+                                                                      Container(
+                                                                        height: 10,
+                                                                        width: 16.66,
+                                                                        decoration: BoxDecoration(
+                                                                          color: Colors.transparent,
+                                                                          borderRadius: BorderRadius.only(
+                                                                            topRight: Radius.circular(40.0),
+                                                                            bottomRight:Radius.circular(40.0), 
+                                                                          )
+                                                                        ),
+                                                                      ),
+                                                                    ],
+                                                                  ),
+                                                                ),
+                                                                SizedBox(width: 10,),
+                                                                Container(
+                                                                  child: Text("Hard",style: TextStyle(color: Colors.red,fontWeight: FontWeight.bold,letterSpacing: 1),),
+                                                                ),
+                                                              ],
+                                                            ),
+                                                            Row(
+                                                              mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                                                              crossAxisAlignment: CrossAxisAlignment.center,
+                                                              children: <Widget>[
+                                                                Icon(Icons.timer,color: Colors.grey,),
+                                                                Flexible(
+                                                                  child: Text(recipe[index]["approximateTime"],style: TextStyle(color: Colors.grey,fontWeight: FontWeight.bold),),
+                                                                )
+                                                              ],
+                                                            ),
+                                                          ],
+                                                        )
+                                                      ),
                                                     )
                                                   ],
                                                 ),
@@ -515,30 +668,31 @@ class _ShowFoodState extends State<ShowFood> {
                                             )
                                           ],
                                         ),
-                                      ),
-                                    )
-                                  ],
-                                ),
-                                Container(
-                                  margin: EdgeInsets.all(7),
-                                  child: Align(
-                                    alignment: Alignment.topRight,
-                                    child: Row(
-                                      mainAxisAlignment: MainAxisAlignment.end,
-                                      children: <Widget>[
-                                        Icon(Icons.favorite_border,color: Colors.red,),
+                                        Container(
+                                          margin: EdgeInsets.all(7),
+                                          child: Align(
+                                            alignment: Alignment.topRight,
+                                            child: Row(
+                                              mainAxisAlignment: MainAxisAlignment.end,
+                                              children: <Widget>[
+                                                Icon(Icons.favorite_border,color: Colors.red,),
+                                              ],
+                                            )
+                                          ),
+                                        )
                                       ],
-                                    )
-                                  ),
-                                )
-                              ],
-                            ),
-                          )
-                        ),
-                      ),
-                    );
-                  },
-                ),
+                                    ),
+                                  )
+                                ),
+                              ),
+                            );
+                          },
+                        );
+                    } else {
+                        return Center(child: CircularProgressIndicator());
+                    }
+                  }
+                )
               ),
             ]),
           ):SliverList(delegate: SliverChildListDelegate([])),
@@ -562,13 +716,14 @@ class _ShowFoodState extends State<ShowFood> {
                 Row(
                   children: <Widget>[
                     Text("With images",style: TextStyle(color: Colors.black54),),
-                    Switch(
+                    SizedBox(width: 10,),
+                    CupertinoSwitch(
                       value: downloadImg, 
-                      onChanged: (bool value){
+                      onChanged: (value){
                         setState(() {
-                          downloadImg=value;
+                          downloadImg = value;
                         });
-                      }
+                      },
                     ),
                   ],
                 ),
@@ -731,3 +886,119 @@ class _ShowFoodState extends State<ShowFood> {
     return concatenate;
   }
 }
+
+
+
+// FutureBuilder(
+//                   future: randomRecipes(),
+//                   builder: (BuildContext context, AsyncSnapshot snapshot) {
+//                     if(snapshot.hasError){
+//                       return Center(child: Text('Error'));
+//                     }
+//                     if(snapshot.connectionState == ConnectionState.done){
+//                       var recipe = snapshot.data;
+//                       return Swiper(
+//                         itemCount: randomRecipe.length,
+//                         viewportFraction: 0.75,
+//                         scale: 1,
+//                         itemBuilder: (BuildContext context,int index){
+//                           return ClipRRect(
+//                             child: GestureDetector(
+//                               onTap: (){Navigator.pushNamed(context, "showfood");},
+//                               child: Card(
+//                                 elevation:0,
+//                                 shape: RoundedRectangleBorder(
+//                                   borderRadius: BorderRadius.circular(20.0),
+//                                 ),
+//                                 child: Container(
+//                                   child: Stack(
+//                                     children: <Widget>[
+//                                       Column(
+//                                         crossAxisAlignment: CrossAxisAlignment.stretch,
+//                                         children: <Widget>[
+//                                           Flexible(
+//                                             flex: 2,
+//                                             child: Container(
+//                                               decoration: BoxDecoration(
+//                                                 borderRadius: BorderRadius.circular(19),
+//                                                 image: DecorationImage(
+//                                                   image: NetworkImage("http://192.168.100.54:3002/"+(randomRecipe[index]["image_recipes"][0]["route"]).replaceAll(r"\",'/')),
+//                                                   fit: BoxFit.cover
+//                                                 )
+//                                               ),
+//                                             ),
+//                                           ),
+//                                           Flexible(
+//                                             flex: 1,
+//                                             child: Container(
+//                                               decoration: BoxDecoration(
+//                                                 borderRadius: BorderRadius.circular(19)
+//                                               ),
+//                                               child: Row(
+//                                                 children: <Widget>[
+//                                                   Flexible(
+//                                                     flex: 5,
+//                                                     child: Container(
+//                                                       padding: EdgeInsets.symmetric(horizontal: 10,vertical: 10),
+//                                                       child: Row(
+//                                                         children: <Widget>[
+//                                                           Flexible(
+//                                                             child: Column(
+//                                                               mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+//                                                               children: <Widget>[
+//                                                                 Text(recipe[index]["title"],overflow: TextOverflow.ellipsis,style: TextStyle(color: Colors.blueGrey,fontWeight: FontWeight.w500,fontSize: 14),),
+//                                                                 Text(randomRecipe[index]["description"],overflow: TextOverflow.ellipsis,style: TextStyle(color: Colors.grey,fontSize: 12.9),)
+//                                                               ],
+//                                                             ),
+//                                                           )
+//                                                         ],
+//                                                       )
+//                                                     ),
+//                                                   ),
+//                                                   Flexible(
+//                                                     flex: 4,
+//                                                     child: Container(
+//                                                       padding: EdgeInsets.all(2),
+//                                                       child: Row(
+//                                                         mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+//                                                         crossAxisAlignment: CrossAxisAlignment.center,
+//                                                         children: <Widget>[
+//                                                           Icon(Icons.timer,color: Colors.grey,),
+//                                                           Flexible(
+//                                                             child: Text("30~40 min",style: TextStyle(color: Colors.grey,fontWeight: FontWeight.bold),),
+//                                                           )
+//                                                         ],
+//                                                       ),
+//                                                     ),
+//                                                   )
+//                                                 ],
+//                                               ),
+//                                             ),
+//                                           )
+//                                         ],
+//                                       ),
+//                                       Container(
+//                                         margin: EdgeInsets.all(7),
+//                                         child: Align(
+//                                           alignment: Alignment.topRight,
+//                                           child: Row(
+//                                             mainAxisAlignment: MainAxisAlignment.end,
+//                                             children: <Widget>[
+//                                               Icon(Icons.favorite_border,color: Colors.red,),
+//                                             ],
+//                                           )
+//                                         ),
+//                                       )
+//                                     ],
+//                                   ),
+//                                 )
+//                               ),
+//                             ),
+//                           );
+//                         },
+//                       );
+//                     }else{
+//                       return Center(child: CircularProgressIndicator());
+//                     }
+//                   },
+//                 ),

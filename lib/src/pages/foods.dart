@@ -1,10 +1,10 @@
-import 'package:circular_menu/circular_menu.dart';
 import 'package:data_connection_checker/data_connection_checker.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:food_size/src/pages/downloads.dart';
 import 'package:food_size/src/pages/favorites.dart';
 import 'package:food_size/src/pages/homeFood.dart';
+import 'package:full_screen_menu/full_screen_menu.dart';
 
 class Foods extends StatefulWidget {
   Foods({Key key}) : super(key: key);
@@ -47,57 +47,13 @@ class _FoodsState extends State<Foods> {
           ),
         ],
       ),
-      floatingActionButton: FloatingActionButton(onPressed: (){},
-        backgroundColor: Colors.orange.shade900,
+      floatingActionButton: FloatingActionButton(
+        onPressed: (){menuFullScreen();},
         child: Container(
-          height: 40.0,
-          width: 40.0,
-          child: Container(
-            child: Stack(
-              children: <Widget>[
-                SvgPicture.asset('assets/images/ensalada.svg'),
-                CircularMenu(
-                alignment: Alignment.bottomCenter,
-                radius: 100,
-                toggleButtonMargin: 0.0,
-                toggleButtonPadding: 10.0,
-                toggleButtonElevation: 0,
-                toggleButtonIconColor: Colors.transparent,
-                toggleButtonColor: Colors.transparent,
-                items: [
-                    MenuItem(
-                      iconSize: 20.0,
-                      elevation: 20,
-                      icon: Icons.supervised_user_circle,
-                      color: Colors.green,
-                      onTap: () {},
-                      margin: 0,
-                      padding: 0,
-                    ),
-                    MenuItem(
-                      iconSize: 20.0,
-                      elevation: 20,
-                      icon: Icons.fastfood,
-                      color: Colors.blue,
-                      onTap: () {},
-                      margin: 0,
-                      padding: 0,
-                    ),
-                    MenuItem(
-                      iconSize: 20.0,
-                      elevation: 20,
-                      icon: Icons.restaurant_menu,
-                      color: Colors.orange,
-                      onTap: () {},
-                      margin: 0,
-                      padding: 0,
-                    ),
-                  ],
-                ),
-              ],
-            ),
-          ),
+          padding: EdgeInsets.all(8),
+          child: SvgPicture.asset('assets/images/ensalada.svg'),
         ),
+        backgroundColor: Colors.deepOrangeAccent,
       ),
       floatingActionButtonLocation: FloatingActionButtonLocation.centerDocked,
       bottomNavigationBar: BottomAppBar(
@@ -169,7 +125,26 @@ class _FoodsState extends State<Foods> {
   }
   ////////////////////////////////////////////////////
   ///
-  
+  menuFullScreen(){
+    return FullScreenMenu.show(
+      context,
+      backgroundColor: Colors.black87,
+      items: [
+        FSMenuItem(
+          icon: Icon(Icons.recent_actors, color: Colors.white),
+          text: Text('Social Media',style: TextStyle(color: Colors.white),),
+        ),
+        FSMenuItem(
+          icon: Icon(Icons.view_carousel, color: Colors.white),
+          text: Text('Recipes',style: TextStyle(color: Colors.white),),
+        ),
+        FSMenuItem(
+          icon: Icon(Icons.restaurant_menu, color: Colors.white),
+          text: Text('Restaurants',style: TextStyle(color: Colors.white),),
+        ),
+      ],
+    );
+  }
 }
 
 Widget notConnection(){
@@ -309,5 +284,4 @@ class DataSearch extends SearchDelegate<String>{
       },
     );
   }
-
 }
