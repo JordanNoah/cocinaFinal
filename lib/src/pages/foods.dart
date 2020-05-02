@@ -1,9 +1,14 @@
+import 'dart:convert';
+import 'dart:io';
+
+import 'package:cached_network_image/cached_network_image.dart';
 import 'package:data_connection_checker/data_connection_checker.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:food_size/src/pages/downloads.dart';
 import 'package:food_size/src/pages/favorites.dart';
 import 'package:food_size/src/pages/homeFood.dart';
+import 'package:http/http.dart' as http;
 import 'package:full_screen_menu/full_screen_menu.dart';
 
 class Foods extends StatefulWidget {
@@ -16,6 +21,7 @@ class Foods extends StatefulWidget {
 class _FoodsState extends State<Foods> {
   bool checkConnection = false;
   PageController _controller = PageController(initialPage:0);
+  List recipes = [];
   @override
   void initState(){
     super.initState();
@@ -164,7 +170,37 @@ Widget notConnection(){
   );
 }
 class DataSearch extends SearchDelegate<String>{
-  
+
+  Future<List> getRecipe() async {
+    var result;
+    try {
+      http.Response responseRandomRecipe = await http.get('http://192.168.100.54:3002/api/getRandomRecipe?idExisting=[]');
+      if(responseRandomRecipe.statusCode == HttpStatus.ok){
+        result = jsonDecode(responseRandomRecipe.body);
+      }
+    } on Exception catch (e) {
+      if(e.toString().contains('SocketException')){
+        result = e.toString();
+      }
+    }
+    return result;
+  }
+
+  Future<List> getSearchRecipe( String query ) async {
+    var result;
+    try {
+      http.Response responseRecipe = await http.get('http://192.168.100.54:3002/api/searchRecipe?querySearch=$query');
+      if(responseRecipe.statusCode == HttpStatus.ok){
+        result = jsonDecode(responseRecipe.body)["message"];
+      }
+    } on Exception catch (e) {
+      if(e.toString().contains('SocketException')){
+        result = e.toString();
+      }
+    }
+    return result;
+  }
+
   final cities =[
     "guayas",
     "quevedo",
@@ -226,61 +262,90 @@ class DataSearch extends SearchDelegate<String>{
   @override
   Widget buildSuggestions(BuildContext context) {
     // muestras cuando alguien busca algo
-    final suggestionList = query.isEmpty?recentCities:cities.where((p)=>p.startsWith(query)).toList();
-    return GridView.builder(
-      itemCount: suggestionList.length,
-      gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(crossAxisCount: 2),
-      itemBuilder: (BuildContext context, index){
-        return Container(
-          margin: EdgeInsets.only(bottom: 5),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: <Widget>[
-              Expanded(
-                child: Container(
-                  margin: EdgeInsets.only(left: 10,right: 5,top: 5),
-                  decoration: BoxDecoration(
-                    color: Colors.black,
-                    borderRadius: BorderRadius.circular(10),
-                    image: DecorationImage(
-                      image: AssetImage("assets/images/food0.jpg"),
-                      fit: BoxFit.cover
-                    )
-                  ),
-                  child: Container(
-                    margin: EdgeInsets.all(6),
-                    child: Align(
-                      alignment: Alignment.topRight,
-                      child: Row(
-                        mainAxisAlignment: MainAxisAlignment.end,
-                        children: <Widget>[
-                          Icon(Icons.favorite_border,color: Colors.red,),
-                        ],
-                      )
+    final suggestionList = query.isEmpty?getRecipe():getSearchRecipe(query);
+    print(query);
+    return FutureBuilder(
+      future: suggestionList,
+      builder: (BuildContext context, AsyncSnapshot snapshot) {
+        if(snapshot.hasError){
+          return Center(child: Text('Error'));
+        }
+        if(snapshot.connectionState == ConnectionState.done){
+          if(snapshot.hasData){
+            List recipes = snapshot.data;
+            final orientation = MediaQuery.of(context).orientation;
+            return GridView.builder(
+              itemCount: recipes.length,
+              gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+                crossAxisCount: (orientation == Orientation.portrait) ? 2 : 3),
+              itemBuilder: (BuildContext context,int index){
+                return Container(
+                  child: Card(
+                    child: GestureDetector(
+                      onTap: (){Navigator.of(context).pushNamed("/showfood",arguments: [recipes[index]['idRecipe'],true]);}, 
+                      child: Container(
+                        margin: EdgeInsets.only(bottom: 5),
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: <Widget>[
+                            Expanded(
+                              child: Container(
+                                child: Container(
+                                  child: Stack(
+                                    children: <Widget>[
+                                      Container(
+                                        height:MediaQuery.of(context).size.height,
+                                        width: MediaQuery.of(context).size.width,
+                                        child: ClipRRect(
+                                          child: CachedNetworkImage(
+                                            imageUrl: "http://192.168.100.54:3002/"+(recipes[index]["image_recipes"][0]["route"]).replaceAll(r"\",'/'),
+                                            progressIndicatorBuilder: (context, url, downloadProgress) => 
+                                              Center(child: CircularProgressIndicator(value: downloadProgress.progress),),
+                                            errorWidget: (context, url, error) => Center(child: Icon(Icons.error),),
+                                            fit: BoxFit.cover,
+                                          ),
+                                        ),
+                                      ),
+                                    ],
+                                  ),
+                                ),
+                              ),
+                            ),
+                            Container(
+                              margin: EdgeInsets.only(left: 10,right: 5,top: 10,bottom: 10),
+                              child: Column(
+                                mainAxisAlignment: MainAxisAlignment.start,
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: <Widget>[
+                                  Text(recipes[index]["title"],overflow: TextOverflow.ellipsis,style: TextStyle(color: Colors.blueGrey,fontWeight: FontWeight.w500,fontSize: 12),),
+                                  Row(
+                                    children: <Widget>[
+                                      Icon(Icons.timer,color: Colors.grey,size: 11,),
+                                      SizedBox(width: 5,),
+                                      Text("30~40 min",style: TextStyle(color: Colors.grey,fontWeight: FontWeight.bold,fontSize: 10),),
+                                    ],
+                                  ),
+                                ],
+                              ),
+                            )
+                          ],
+                        ),
+                      ),
                     ),
                   ),
-                ),
-              ),
-              Container(
-                margin: EdgeInsets.only(left: 10,right: 10,top:5),
-                child: Column(
-                  mainAxisAlignment: MainAxisAlignment.start,
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: <Widget>[
-                    Text(suggestionList[index],overflow: TextOverflow.ellipsis,style: TextStyle(color: Colors.blueGrey,fontWeight: FontWeight.w500,fontSize: 12),),
-                    Row(
-                      children: <Widget>[
-                        Icon(Icons.timer,color: Colors.grey,size: 11,),
-                        SizedBox(width: 5,),
-                        Text("30~40 min",style: TextStyle(color: Colors.grey,fontWeight: FontWeight.bold,fontSize: 10),),
-                      ],
-                    ),
-                  ],
-                ),
-              )
-            ],
-          ),
-        );
+                );
+              },
+            );
+          }else{
+            return Center(
+              child: Text("Not found"),
+            );
+          }
+        }else{
+          return Center(
+            child: CircularProgressIndicator(),
+          );
+        }
       },
     );
   }

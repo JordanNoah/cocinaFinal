@@ -520,7 +520,7 @@ class _HomeFoodState extends State<HomeFood> {
                           children: <Widget>[
                             Expanded(
                               child: Container(
-                                margin: EdgeInsets.only(left: 10,right: 5,top: 5),                            
+                                margin: EdgeInsets.only(right: 5,top: 5),                            
                                 child: Container(
                                   margin: EdgeInsets.all(6),
                                   child: Stack(
