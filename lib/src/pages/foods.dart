@@ -201,29 +201,6 @@ class DataSearch extends SearchDelegate<String>{
     return result;
   }
 
-  final cities =[
-    "guayas",
-    "quevedo",
-    "manta",
-    "quito",
-    "cuenca",
-    "new delhi",
-    "nodia",
-    "thane",
-    "howrad",
-    "thane",
-    "guayas",
-    "quevedo",
-    "manta"
-  ];
-
-  final recentCities = [
-    "nodia",
-    "thane",
-    "howrad",
-    "thane"
-  ];
-
   @override
   List<Widget> buildActions(BuildContext context) {
     // acciones para el app bar
@@ -249,13 +226,90 @@ class DataSearch extends SearchDelegate<String>{
   @override
   Widget buildResults(BuildContext context) {
     // mostrar resultados basados en  la seleccion
-    return Container(
-      height: 100.0,
-      width: 100.0,
-      child: Card(
-        color: Colors.red,
-        
-      ),
+    final suggestionList = query.isEmpty?getRecipe():getSearchRecipe(query);
+    print(query);
+    return FutureBuilder(
+      future: suggestionList,
+      builder: (BuildContext context, AsyncSnapshot snapshot) {
+        if(snapshot.hasError){
+          return Center(child: Text('Error'));
+        }
+        if(snapshot.connectionState == ConnectionState.done){
+          if(snapshot.hasData){
+            List recipes = snapshot.data;
+            final orientation = MediaQuery.of(context).orientation;
+            return GridView.builder(
+              itemCount: recipes.length,
+              gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+                crossAxisCount: (orientation == Orientation.portrait) ? 2 : 3),
+              itemBuilder: (BuildContext context,int index){
+                return Container(
+                  child: Card(
+                    child: GestureDetector(
+                      onTap: (){Navigator.of(context).pushNamed("/showfood",arguments: [recipes[index]['idRecipe'],true]);}, 
+                      child: Container(
+                        margin: EdgeInsets.only(bottom: 5),
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: <Widget>[
+                            Expanded(
+                              child: Container(
+                                child: Container(
+                                  child: Stack(
+                                    children: <Widget>[
+                                      Container(
+                                        height:MediaQuery.of(context).size.height,
+                                        width: MediaQuery.of(context).size.width,
+                                        child: ClipRRect(
+                                          child: CachedNetworkImage(
+                                            imageUrl: "http://192.168.100.54:3002/"+(recipes[index]["image_recipes"][0]["route"]).replaceAll(r"\",'/'),
+                                            progressIndicatorBuilder: (context, url, downloadProgress) => 
+                                              Center(child: CircularProgressIndicator(value: downloadProgress.progress),),
+                                            errorWidget: (context, url, error) => Center(child: Icon(Icons.error),),
+                                            fit: BoxFit.cover,
+                                          ),
+                                        ),
+                                      ),
+                                    ],
+                                  ),
+                                ),
+                              ),
+                            ),
+                            Container(
+                              margin: EdgeInsets.only(left: 10,right: 5,top: 10,bottom: 10),
+                              child: Column(
+                                mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: <Widget>[
+                                  Text(recipes[index]["title"],overflow: TextOverflow.ellipsis,style: TextStyle(color: Colors.blueGrey,fontWeight: FontWeight.w500,fontSize: 12),),
+                                  Row(
+                                    children: <Widget>[
+                                      Icon(Icons.timer,color: Colors.grey,size: 11,),
+                                      Text("30~40 min",style: TextStyle(color: Colors.grey,fontWeight: FontWeight.bold,fontSize: 10),),
+                                    ],
+                                  ),
+                                ],
+                              ),
+                            )
+                          ],
+                        ),
+                      ),
+                    ),
+                  ),
+                );
+              },
+            );
+          }else{
+            return Center(
+              child: Text("Not found"),
+            );
+          }
+        }else{
+          return Center(
+            child: CircularProgressIndicator(),
+          );
+        }
+      },
     );
   }
 

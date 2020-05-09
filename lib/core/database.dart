@@ -106,7 +106,7 @@ class ClientDatabaseProvider{
     return responseImages.length==0?null:responseImages[0]["route"];
   }
 
-  addRecipeToDatabase (Recipe recipe,List steps,List imageRecipe,List multiRecipeIngredient) async {
+  addRecipeToDatabase (Recipe recipe,List steps,List imageRecipe,List multiRecipeIngredient, bool images) async {
     final db = await database;
     //recipe ya pasa como modelo
     var insert = await db.transaction((trc) async {
@@ -136,7 +136,9 @@ class ClientDatabaseProvider{
           );
           responseImg = await trc.insert("image_recipes", imgRecipe.toMap());
           ///
-          await insertImage(imageRecipeObj["route"]);
+          if (images) {
+            await insertImage(imageRecipeObj["route"]);
+          }
           ///
         }
 
@@ -154,7 +156,9 @@ class ClientDatabaseProvider{
             name: multiRecipeIngredientObj["ingredient"]["name"],
             routeImage: multiRecipeIngredientObj["ingredient"]["routeImage"].replaceAll(r"\",'/').split("/").last,
           );
-          await insertImage(multiRecipeIngredientObj["ingredient"]["routeImage"]);
+          if(images){
+            await insertImage(multiRecipeIngredientObj["ingredient"]["routeImage"]);
+          }
           var existIngredient = await trc.query("ingredients",where: "idIngredient = ?", whereArgs: [ingredient.idIngredient]);
           if(existIngredient.isEmpty){
             await trc.insert("ingredients", ingredient.toMap());

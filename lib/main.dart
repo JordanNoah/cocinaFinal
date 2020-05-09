@@ -14,11 +14,6 @@ class MyApp extends StatelessWidget {
         debugShowCheckedModeBanner: false,
         initialRoute: '/',
         onGenerateRoute: RouterGenerator.generateRoute
-        // routes: {
-        //   "/":(BuildContext context)=>Foods(),
-        //   "showfood":(BuildContext context,String idRecipe)=>ShowFood(),
-        //   "playRecipie":(BuildContext context)=>PlayRecipie()
-        // },
     );
   }
 }

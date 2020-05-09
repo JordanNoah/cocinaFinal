@@ -57,18 +57,6 @@ class _FavoritesState extends State<Favorites> {
                               fit: BoxFit.cover
                             )
                           ),
-                          child: Container(
-                            margin: EdgeInsets.all(6),
-                            child: Align(
-                              alignment: Alignment.topRight,
-                              child: Row(
-                                mainAxisAlignment: MainAxisAlignment.end,
-                                children: <Widget>[
-                                  Icon(Icons.favorite_border,color: Colors.red,),
-                                ],
-                              )
-                            ),
-                          ),
                         ),
                       ),
                       Container(
