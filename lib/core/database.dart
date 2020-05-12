@@ -31,7 +31,9 @@ class ClientDatabaseProvider{
         await db.execute("CREATE TABLE recipes("
         "idRecipe integer,"
         "title text,"
-        "description text"
+        "description text,"
+        "difficulty text,"
+        "aproxTime text"
         ")");
         await db.execute("CREATE TABLE steps_recipes("
         "idStep integer,"

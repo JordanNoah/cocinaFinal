@@ -147,6 +147,7 @@ class _HomeFoodState extends State<HomeFood> {
                                   return Center(child: Text('Error'));
                                 }
                                 if (snapshot.connectionState == ConnectionState.done) {
+                                  print(snapshot.data);
                                   var recipe = snapshot.data;
                                   return Swiper(
                                     itemCount: snapshot.data.length,
@@ -169,18 +170,50 @@ class _HomeFoodState extends State<HomeFood> {
                                                     children: <Widget>[
                                                       Flexible(
                                                         flex: 2,
-                                                        child: ClipRRect(
-                                                          borderRadius: BorderRadius.only(
-                                                            topLeft: Radius.circular(20),
-                                                            topRight: Radius.circular(20)
-                                                          ),
-                                                          child: CachedNetworkImage(
-                                                            imageUrl: "http://192.168.100.54:3002/"+(recipe[index]["image_recipes"][0]["route"]).replaceAll(r"\",'/'),
-                                                            progressIndicatorBuilder: (context, url, downloadProgress) => 
-                                                              Center(child: CircularProgressIndicator(value: downloadProgress.progress),),
-                                                            errorWidget: (context, url, error) => Center(child: Icon(Icons.error),),
-                                                            fit: BoxFit.cover,
-                                                          ),
+                                                        child: Stack(
+                                                          children: <Widget>[
+                                                            Container(
+                                                              width: MediaQuery.of(context).size.width,
+                                                              child: ClipRRect(
+                                                                borderRadius: BorderRadius.only(
+                                                                  topLeft: Radius.circular(20),
+                                                                  topRight: Radius.circular(20)
+                                                                ),
+                                                                child: CachedNetworkImage(
+                                                                  imageUrl: "http://192.168.100.54:3002/"+(recipe[index]["image_recipes"][0]["route"]).replaceAll(r"\",'/'),
+                                                                  progressIndicatorBuilder: (context, url, downloadProgress) => 
+                                                                    Center(child: CircularProgressIndicator(value: downloadProgress.progress),),
+                                                                  errorWidget: (context, url, error) => Center(child: Icon(Icons.error),),
+                                                                  fit: BoxFit.cover,
+                                                                ),
+                                                              ),
+                                                            ),
+                                                            Container(
+                                                              decoration: BoxDecoration(
+                                                                borderRadius: BorderRadius.only(
+                                                                  topLeft: Radius.circular(20),
+                                                                  topRight: Radius.circular(20)
+                                                                ),
+                                                                gradient: LinearGradient(
+                                                                  stops: [
+                                                                    0.1,
+                                                                    0.3
+                                                                  ],
+                                                                  colors:[
+                                                                    Colors.black26,
+                                                                    Colors.transparent
+                                                                  ],
+                                                                  begin: Alignment.topRight,
+                                                                  end: Alignment.bottomLeft
+                                                                )
+                                                              ),
+                                                              child: Container(
+                                                                padding: EdgeInsets.all(10),
+                                                                alignment: Alignment.topRight,
+                                                                child: Icon(Icons.favorite_border,color: Colors.red,),
+                                                              ),
+                                                            )
+                                                          ],
                                                         ),
                                                       ),
                                                       Flexible(
@@ -192,7 +225,7 @@ class _HomeFoodState extends State<HomeFood> {
                                                           child: Row(
                                                             children: <Widget>[
                                                               Flexible(
-                                                                flex: 5,
+                                                                flex: 4,
                                                                 child: Container(
                                                                   padding: EdgeInsets.symmetric(horizontal: 10,vertical: 10),
                                                                   child: Row(
@@ -211,13 +244,14 @@ class _HomeFoodState extends State<HomeFood> {
                                                                 ),
                                                               ),
                                                               Flexible(
-                                                                flex: 4,
+                                                                flex: 5,
                                                                 child: Container(
-                                                                  padding: EdgeInsets.all(2),
+                                                                  margin: EdgeInsets.only(right: 15),
                                                                   child: Column(
                                                                     mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                                                                     children: <Widget>[
                                                                       Row(
+                                                                        mainAxisAlignment: MainAxisAlignment.end,
                                                                         children: <Widget>[
                                                                           Container(
                                                                             decoration: BoxDecoration(
@@ -241,18 +275,14 @@ class _HomeFoodState extends State<HomeFood> {
                                                                                   height: 10,
                                                                                   width: 16.66,
                                                                                   decoration: BoxDecoration(
-                                                                                    color: Colors.orange,
-                                                                                    borderRadius: BorderRadius.only(
-                                                                                      topRight: Radius.circular(40.0),
-                                                                                      bottomRight:Radius.circular(40.0), 
-                                                                                    )
+                                                                                    color: recipe[index]["difficulty"]=="Medium"||recipe[index]["difficulty"]=="Hard"?Colors.orange:Colors.transparent,
                                                                                   ),
                                                                                 ),
                                                                                 Container(
                                                                                   height: 10,
                                                                                   width: 16.66,
                                                                                   decoration: BoxDecoration(
-                                                                                    color: Colors.transparent,
+                                                                                    color:recipe[index]["difficulty"]=="Hard" ? Colors.orange : Colors.transparent,
                                                                                     borderRadius: BorderRadius.only(
                                                                                       topRight: Radius.circular(40.0),
                                                                                       bottomRight:Radius.circular(40.0), 
@@ -264,13 +294,14 @@ class _HomeFoodState extends State<HomeFood> {
                                                                           ),
                                                                           SizedBox(width: 10,),
                                                                           Container(
-                                                                            child: Text("Hard",style: TextStyle(color: Colors.red,fontWeight: FontWeight.bold,letterSpacing: 1),),
+                                                                            width: 60,
+                                                                            child: Text(recipe[index]["difficulty"],style: TextStyle(color: Colors.red,fontWeight: FontWeight.bold,letterSpacing: 1),overflow: TextOverflow.ellipsis,),
                                                                           ),
                                                                         ],
                                                                       ),
                                                                       Row(
                                                                         mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                                                                        crossAxisAlignment: CrossAxisAlignment.center,
+                                                                        crossAxisAlignment: CrossAxisAlignment.start,
                                                                         children: <Widget>[
                                                                           Icon(Icons.timer,color: Colors.grey,),
                                                                           Flexible(
@@ -397,7 +428,7 @@ class _HomeFoodState extends State<HomeFood> {
                                             children: <Widget>[
                                               Icon(Icons.timer,color: Colors.grey,size: 11,),
                                               SizedBox(width: 5,),
-                                              Text("30~40 min",style: TextStyle(color: Colors.grey,fontWeight: FontWeight.bold,fontSize: 10),),
+                                              Text(recipe[index]["recipe"]["approximateTime"],style: TextStyle(color: Colors.grey,fontWeight: FontWeight.bold,fontSize: 10),),
                                             ],
                                           ),
                                         ],
@@ -521,7 +552,7 @@ class _HomeFoodState extends State<HomeFood> {
                                       children: <Widget>[
                                         Icon(Icons.timer,color: Colors.grey,size: 11,),
                                         SizedBox(width: 5,),
-                                        Text("30~40 min",style: TextStyle(color: Colors.grey,fontWeight: FontWeight.bold,fontSize: 10),),
+                                        Text(randomRecipe[index]["approximateTime"],style: TextStyle(color: Colors.grey,fontWeight: FontWeight.bold,fontSize: 10),),
                                       ],
                                     ),
                                   ],
