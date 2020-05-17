@@ -5,6 +5,7 @@ import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_swiper/flutter_swiper.dart';
 import 'package:food_size/src/icons/darts/list_fooddart_icons.dart';
+import 'package:food_size/src/widgets/recipeDifficulty.dart';
 import 'package:http/http.dart' as http;
 import 'package:random_color/random_color.dart';
 
@@ -21,51 +22,45 @@ class _HomeFoodState extends State<HomeFood> {
   List newRecipes = [];
   List mostVotedRecipe = [];
   List randomRecipe = [];
-  List likedNew = [];
+  List liked = [];
   RandomColor _randomColor = RandomColor();
 
   @override
   void initState() { 
     super.initState();
     randomRecipes();
+    getIdsLikedRecipe();
   }
+
 
 
   Future loadNewRecipes() async{
     try {
-      http.Response responseNewRecipe = await http.get('http://192.168.100.54:3002/api/getLastsRecipe?idUser=1');
+      http.Response responseNewRecipe = await http.get('http://3.23.131.0:3002/api/getLastsRecipe');
       if(responseNewRecipe.statusCode == HttpStatus.ok){
         var result = jsonDecode(responseNewRecipe.body)["message"];
         return result;
       }
     } on Exception catch (e) {
-      if(e.toString().contains('SocketException')){
-        setState(() {
-          newRecipes = null;
-        });
-      }
+      return e;
     }
   }
 
   Future mostVotedRecipes() async{
     try {
-      http.Response responseMostVotedRecipe = await http.get('http://192.168.100.54:3002/api/getLikedRecipe');
+      http.Response responseMostVotedRecipe = await http.get('http://3.23.131.0:3002/api/getLikedRecipe');
       if(responseMostVotedRecipe.statusCode == HttpStatus.ok){
         var result = jsonDecode(responseMostVotedRecipe.body)["message"];
         return result;
       }
     } on Exception catch (e) {
-      if(e.toString().contains('SocketException')){
-        setState(() {
-          mostVotedRecipe = null;
-        });
-      }
+      return e;
     }
   }
 
   Future randomRecipes() async{
     try {
-      http.Response responseRandomRecipe = await http.get('http://192.168.100.54:3002/api/getRandomRecipe?idExisting=[]');
+      http.Response responseRandomRecipe = await http.get('http://3.23.131.0:3002/api/getRandomRecipe?idExisting=[]');
       if(responseRandomRecipe.statusCode == HttpStatus.ok){
         var result = jsonDecode(responseRandomRecipe.body);
         setState(() {
@@ -81,45 +76,96 @@ class _HomeFoodState extends State<HomeFood> {
     }
   }
 
+  Future getIdsLikedRecipe() async{
+    try {
+      http.Response responseLiked = await http.get('http://3.23.131.0:3002/api/getIdsLikedRecipe?idUser=1');
+      if(responseLiked.statusCode == HttpStatus.ok){
+        var ids=jsonDecode(responseLiked.body)["message"];
+        for(var idrecipe in ids){
+          liked.add(idrecipe["idRecipe"]);
+        }
+      }
+    } on Exception catch (e) {
+      if(e.toString().contains('SocketException')){
+        setState(() {
+          randomRecipe = null;
+        });
+      }
+    }
+  }
+
+  Future setLikedRecipe() async{
+    try {
+      final http.Response response = await http.post(
+        'http://3.23.131.0:3002/api/updateLikedRecipe',
+        headers: <String, String>{
+          'Content-Type': 'application/json; charset=UTF-8',
+        },
+        body: jsonEncode(<String, dynamic>{
+          "actualState":false,
+          "idRecipe":1,
+          "idUser":1
+        }),
+      );
+      if (response.statusCode == 200) {
+        var responseDecode = jsonDecode(response.body);
+        if(responseDecode["status"]=="success"){
+          var messageDecode = jsonDecode(responseDecode["message"]);
+          print(messageDecode);
+        }else{
+          print(responseDecode);
+        }
+        setState(() {});
+      }else{
+        print(response);
+      }
+    } on Exception catch (e) {
+      if(e.toString().contains('SocketException')){
+
+      }
+    }
+  }
+
   
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      appBar: AppBar(
+        elevation: 0,
+        backgroundColor: Colors.transparent,
+        title: Row(
+          crossAxisAlignment: CrossAxisAlignment.center,
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: <Widget>[
+            IconButton(
+              icon: Icon(Icons.arrow_back_ios),
+              onPressed: () {
+                indexSelected !=0 ? setState(() {
+                  indexSelected=0;
+                }):null;
+              },
+              color: indexSelected != 0 ? Colors.black : Colors.grey
+            ),
+            Text(categoryFood[indexSelected],style: TextStyle(color: Colors.black54,fontWeight: FontWeight.bold),),
+            IconButton(
+              icon: Icon(Icons.arrow_forward_ios),
+              onPressed: (){
+                indexSelected ==1 ? null : setState(() {
+                  indexSelected=1;
+                });
+              },
+              color: indexSelected == 1 ? Colors.grey : Colors.black,
+            ),
+          ],
+        ),
+      ),
       body: SafeArea(
         child: Container(
-          margin: EdgeInsets.only(bottom: 0),
           child: CustomScrollView(
             physics: BouncingScrollPhysics(),
             slivers: <Widget>[
               SliverList(
                 delegate: SliverChildListDelegate([
-                  Container(
-                    child: Row(
-                      crossAxisAlignment: CrossAxisAlignment.center,
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      children: <Widget>[
-                        IconButton(
-                          icon: Icon(Icons.arrow_back_ios),
-                          onPressed: () {
-                            indexSelected !=0 ? setState(() {
-                              indexSelected=0;
-                            }):null;
-                          },
-                          color: indexSelected != 0 ? Colors.black : Colors.grey
-                        ),
-                        Text(categoryFood[indexSelected],style: TextStyle(color: Colors.black54,fontWeight: FontWeight.bold),),
-                        IconButton(
-                          icon: Icon(Icons.arrow_forward_ios),
-                          onPressed: (){
-                            indexSelected ==1 ? null : setState(() {
-                              indexSelected=1;
-                            });
-                          },
-                          color: indexSelected == 1 ? Colors.grey : Colors.black,
-                        ),
-                      ],
-                    ),
-                  ),
                   Container(
                     width: MediaQuery.of(context).size.width,
                     child: Column(
@@ -131,7 +177,7 @@ class _HomeFoodState extends State<HomeFood> {
                             children: <Widget>[
                               Text("New recipes",style: TextStyle(fontWeight: FontWeight.bold,color: Colors.blueGrey,fontSize: 16),),
                               GestureDetector(
-                                onTap: (){Navigator.pushNamed(context, '/categorie',arguments: ["New recipes"]);},
+                                onTap: (){Navigator.pushNamed(context, '/listFood',arguments: ["New recipes"]);},
                                 child: Text("Show more",style: TextStyle(color: Colors.blueAccent),),
                               )
                             ],
@@ -147,7 +193,6 @@ class _HomeFoodState extends State<HomeFood> {
                                   return Center(child: Text('Error'));
                                 }
                                 if (snapshot.connectionState == ConnectionState.done) {
-                                  print(snapshot.data);
                                   var recipe = snapshot.data;
                                   return Swiper(
                                     itemCount: snapshot.data.length,
@@ -180,10 +225,10 @@ class _HomeFoodState extends State<HomeFood> {
                                                                   topRight: Radius.circular(20)
                                                                 ),
                                                                 child: CachedNetworkImage(
-                                                                  imageUrl: "http://192.168.100.54:3002/"+(recipe[index]["image_recipes"][0]["route"]).replaceAll(r"\",'/'),
+                                                                  imageUrl: "http://3.23.131.0:3002/"+(recipe[index]["image_recipes"][0]["route"]).replaceAll(r"\",'/'),
                                                                   progressIndicatorBuilder: (context, url, downloadProgress) => 
                                                                     Center(child: CircularProgressIndicator(value: downloadProgress.progress),),
-                                                                  errorWidget: (context, url, error) => Center(child: Icon(Icons.error),),
+                                                                  errorWidget: (context, url, error) => Center(child: Column(mainAxisAlignment: MainAxisAlignment.center,children: <Widget>[Icon(Icons.error),Text("Not found")],),),
                                                                   fit: BoxFit.cover,
                                                                 ),
                                                               ),
@@ -210,7 +255,17 @@ class _HomeFoodState extends State<HomeFood> {
                                                               child: Container(
                                                                 padding: EdgeInsets.all(10),
                                                                 alignment: Alignment.topRight,
-                                                                child: Icon(Icons.favorite_border,color: Colors.red,),
+                                                                child: GestureDetector(
+                                                                  onTap: (){setLikedRecipe();},
+                                                                  child: Icon(
+                                                                    liked.contains(recipe[index]["idRecipe"])
+                                                                      ?
+                                                                        Icons.favorite
+                                                                          :
+                                                                            Icons.favorite_border,
+                                                                    color: Colors.red,
+                                                                  ),
+                                                                )
                                                               ),
                                                             )
                                                           ],
@@ -250,63 +305,14 @@ class _HomeFoodState extends State<HomeFood> {
                                                                   child: Column(
                                                                     mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                                                                     children: <Widget>[
+                                                                      RecipeDifficulty(recipe[index]["difficulty"]),
                                                                       Row(
-                                                                        mainAxisAlignment: MainAxisAlignment.end,
-                                                                        children: <Widget>[
-                                                                          Container(
-                                                                            decoration: BoxDecoration(
-                                                                              color: Colors.grey,
-                                                                              borderRadius: BorderRadius.circular(40.0)
-                                                                            ),
-                                                                            child: Row(
-                                                                              children: <Widget>[
-                                                                                Container(
-                                                                                  height: 10,
-                                                                                  width: 16.66,
-                                                                                  decoration: BoxDecoration(
-                                                                                    color: Colors.orange,
-                                                                                    borderRadius: BorderRadius.only(
-                                                                                      topLeft: Radius.circular(40.0),
-                                                                                      bottomLeft:Radius.circular(40.0), 
-                                                                                    )
-                                                                                  ),
-                                                                                ),
-                                                                                Container(
-                                                                                  height: 10,
-                                                                                  width: 16.66,
-                                                                                  decoration: BoxDecoration(
-                                                                                    color: recipe[index]["difficulty"]=="Medium"||recipe[index]["difficulty"]=="Hard"?Colors.orange:Colors.transparent,
-                                                                                  ),
-                                                                                ),
-                                                                                Container(
-                                                                                  height: 10,
-                                                                                  width: 16.66,
-                                                                                  decoration: BoxDecoration(
-                                                                                    color:recipe[index]["difficulty"]=="Hard" ? Colors.orange : Colors.transparent,
-                                                                                    borderRadius: BorderRadius.only(
-                                                                                      topRight: Radius.circular(40.0),
-                                                                                      bottomRight:Radius.circular(40.0), 
-                                                                                    )
-                                                                                  ),
-                                                                                ),
-                                                                              ],
-                                                                            ),
-                                                                          ),
-                                                                          SizedBox(width: 10,),
-                                                                          Container(
-                                                                            width: 60,
-                                                                            child: Text(recipe[index]["difficulty"],style: TextStyle(color: Colors.red,fontWeight: FontWeight.bold,letterSpacing: 1),overflow: TextOverflow.ellipsis,),
-                                                                          ),
-                                                                        ],
-                                                                      ),
-                                                                      Row(
-                                                                        mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                                                                        crossAxisAlignment: CrossAxisAlignment.start,
+                                                                        crossAxisAlignment: CrossAxisAlignment.center,
+                                                                        mainAxisAlignment: MainAxisAlignment.center,
                                                                         children: <Widget>[
                                                                           Icon(Icons.timer,color: Colors.grey,),
-                                                                          Flexible(
-                                                                            child: Text(recipe[index]["approximateTime"],style: TextStyle(color: Colors.grey,fontWeight: FontWeight.bold),),
-                                                                          )
+                                                                          SizedBox(width: 10,),
+                                                                          Text(recipe[index]["approximateTime"],style: TextStyle(color: Colors.grey,fontWeight: FontWeight.bold),),
                                                                         ],
                                                                       ),
                                                                     ],
@@ -361,7 +367,7 @@ class _HomeFoodState extends State<HomeFood> {
                       children: <Widget>[
                         Text("Most voted",style: TextStyle(fontWeight: FontWeight.bold,color: Colors.blueGrey,fontSize: 16),),
                         GestureDetector(
-                          onTap: (){Navigator.pushNamed(context, '/categorie',arguments: ["Most voted"]);},
+                          onTap: (){Navigator.pushNamed(context, '/listFood',arguments: ["Most voted"]);},
                           child: Text("Show more",style: TextStyle(color: Colors.blueAccent),),
                         )
                       ],
@@ -401,14 +407,49 @@ class _HomeFoodState extends State<HomeFood> {
                                                   child: ClipRRect(
                                                     borderRadius: BorderRadius.circular(10),
                                                     child: CachedNetworkImage(
-                                                      imageUrl: "http://192.168.100.54:3002/"+(recipe[index]["recipe"]["image_recipes"][0]["route"]).replaceAll(r"\",'/'),
+                                                      imageUrl: "http://3.23.131.0:3002/"+(recipe[index]["recipe"]["image_recipes"][0]["route"]).replaceAll(r"\",'/'),
                                                       progressIndicatorBuilder: (context, url, downloadProgress) => 
                                                         Center(child: CircularProgressIndicator(value: downloadProgress.progress),),
-                                                      errorWidget: (context, url, error) => Center(child: Icon(Icons.error),),
+                                                      errorWidget: (context, url, error) => Center(child: Column(mainAxisAlignment: MainAxisAlignment.center,children: <Widget>[Icon(Icons.error),Text("Not found")],),),
                                                       fit: BoxFit.cover,
                                                     ),
                                                   ),
                                                 ),
+                                                Container(
+                                                  decoration: BoxDecoration(
+                                                    borderRadius: BorderRadius.only(
+                                                      topLeft: Radius.circular(20),
+                                                      topRight: Radius.circular(20)
+                                                    ),
+                                                    gradient: LinearGradient(
+                                                      stops: [
+                                                        0.1,
+                                                        0.3
+                                                      ],
+                                                      colors:[
+                                                        Colors.black26,
+                                                        Colors.transparent
+                                                      ],
+                                                      begin: Alignment.topRight,
+                                                      end: Alignment.bottomLeft
+                                                    )
+                                                  ),
+                                                  child: Container(
+                                                    padding: EdgeInsets.all(10),
+                                                    alignment: Alignment.topRight,
+                                                    child: GestureDetector(
+                                                      onTap: (){setLikedRecipe();},
+                                                      child: Icon(
+                                                        liked.contains(recipe[index]["idRecipe"])
+                                                          ?
+                                                            Icons.favorite
+                                                              :
+                                                                Icons.favorite_border,
+                                                        color: Colors.red,
+                                                      ),
+                                                    )
+                                                  ),
+                                                )
                                               ],
                                             ),
                                           ),
@@ -468,7 +509,7 @@ class _HomeFoodState extends State<HomeFood> {
                       children: <Widget>[
                         Text("Categories",style: TextStyle(fontWeight: FontWeight.bold,color: Colors.blueGrey,fontSize: 16),),
                         GestureDetector(
-                          onTap: (){Navigator.pushNamed(context, '/categorie',arguments: ["Categories"]);},
+                          onTap: (){Navigator.pushNamed(context, '/categories');},
                           child: Text("Show more",style: TextStyle(color: Colors.blueAccent),),
                         )
                       ],
@@ -477,6 +518,7 @@ class _HomeFoodState extends State<HomeFood> {
                   Container(
                     margin: EdgeInsets.symmetric(horizontal: 10,vertical: 10),
                     child: Wrap(
+                      alignment: WrapAlignment.spaceEvenly,
                       children: <Widget>[
                         category("Breakfast",Icon(Icons.free_breakfast,color: Colors.white,)),
                         category("Lunch",Icon(List_fooddart.lunch,color: Colors.white,)),
@@ -496,7 +538,7 @@ class _HomeFoodState extends State<HomeFood> {
                       children: <Widget>[
                         Text("Random",style: TextStyle(fontWeight: FontWeight.bold,color: Colors.blueGrey,fontSize: 16),),
                         GestureDetector(
-                          onTap: (){Navigator.pushNamed(context, '/categorie',arguments: ["Random"]);},
+                          onTap: (){Navigator.pushNamed(context, '/listFood',arguments: ["Random"]);},
                           child: Text("Show more",style: TextStyle(color: Colors.blueAccent),),
                         )
                       ],
@@ -528,12 +570,47 @@ class _HomeFoodState extends State<HomeFood> {
                                           child: ClipRRect(
                                             borderRadius: BorderRadius.circular(10),
                                             child: CachedNetworkImage(
-                                              imageUrl: "http://192.168.100.54:3002/"+(randomRecipe[index]["image_recipes"][0]["route"]).replaceAll(r"\",'/'),
+                                              imageUrl: "http://3.23.131.0:3002/"+(randomRecipe[index]["image_recipes"][0]["route"]).replaceAll(r"\",'/'),
                                               progressIndicatorBuilder: (context, url, downloadProgress) => 
                                                 Center(child: CircularProgressIndicator(value: downloadProgress.progress),),
-                                              errorWidget: (context, url, error) => Center(child: Icon(Icons.error),),
+                                              errorWidget: (context, url, error) => Center(child: Column(mainAxisAlignment: MainAxisAlignment.center,children: <Widget>[Icon(Icons.error),Text("Not found")],),),
                                               fit: BoxFit.cover,
                                             ),
+                                          ),
+                                        ),
+                                        Container(
+                                          decoration: BoxDecoration(
+                                            borderRadius: BorderRadius.only(
+                                              topLeft: Radius.circular(20),
+                                              topRight: Radius.circular(20)
+                                            ),
+                                            gradient: LinearGradient(
+                                              stops: [
+                                                0.1,
+                                                0.3
+                                              ],
+                                              colors:[
+                                                Colors.black26,
+                                                Colors.transparent
+                                              ],
+                                              begin: Alignment.topRight,
+                                              end: Alignment.bottomLeft
+                                            )
+                                          ),
+                                          child: Container(
+                                            padding: EdgeInsets.all(10),
+                                            alignment: Alignment.topRight,
+                                            child: GestureDetector(
+                                              onTap: (){setLikedRecipe();},
+                                              child: Icon(
+                                                liked.contains(randomRecipe[index]["idRecipe"])
+                                                  ?
+                                                    Icons.favorite
+                                                      :
+                                                        Icons.favorite_border,
+                                                color: Colors.red,
+                                              ),
+                                            )
                                           ),
                                         ),
                                       ],
@@ -610,7 +687,7 @@ class _HomeFoodState extends State<HomeFood> {
       colorBrightness: ColorBrightness.light
     );
     return GestureDetector(
-      onTap: (){Navigator.pushNamed(context, '/categorie',arguments: [categoriesName]);},
+      onTap: (){Navigator.pushNamed(context, '/listFood',arguments: [categoriesName]);},
       child: Container(
         margin: EdgeInsets.all(5),
         width: 75,

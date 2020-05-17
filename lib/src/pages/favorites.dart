@@ -20,7 +20,7 @@ class _FavoritesState extends State<Favorites> {
   }
   
   Future loadFavoriteRecipes() async {
-    http.Response  responseFavRecipe= await http.get('http://192.168.100.54:3002/api/getMyfavorites?idUser=1');
+    http.Response  responseFavRecipe= await http.get('http://3.23.131.0:3002/api/getMyfavorites?idUser=1');
     String respFavRecipes = responseFavRecipe.body;
     final jsonFavRecipe = jsonDecode(respFavRecipes)["message"];
     setState(() {
@@ -53,7 +53,7 @@ class _FavoritesState extends State<Favorites> {
                             color: Colors.black,
                             borderRadius: BorderRadius.circular(10),
                             image: DecorationImage(
-                              image: NetworkImage("http://192.168.100.54:3002/"+(myFavorite[index]["recipe"]["image_recipes"][0]["route"]).replaceAll(r"\",'/')),
+                              image: NetworkImage("http://3.23.131.0:3002/"+(myFavorite[index]["recipe"]["image_recipes"][0]["route"]).replaceAll(r"\",'/')),
                               fit: BoxFit.cover
                             )
                           ),

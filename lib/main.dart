@@ -12,6 +12,7 @@ class MyApp extends StatelessWidget {
     return MaterialApp(
         title: 'Cocina',
         debugShowCheckedModeBanner: false,
+        theme: ThemeData.light(),
         initialRoute: '/',
         onGenerateRoute: RouterGenerator.generateRoute
     );

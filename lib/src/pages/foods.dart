@@ -2,7 +2,7 @@ import 'dart:convert';
 import 'dart:io';
 
 import 'package:cached_network_image/cached_network_image.dart';
-import 'package:data_connection_checker/data_connection_checker.dart';
+import 'package:connectivity/connectivity.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:food_size/src/pages/downloads.dart';
@@ -19,39 +19,48 @@ class Foods extends StatefulWidget {
 }
 
 class _FoodsState extends State<Foods> {
-  bool checkConnection = false;
   PageController _controller = PageController(initialPage:0);
   List recipes = [];
   @override
   void initState(){
     super.initState();
-    connectionState();
   }
 
   Future connectionState() async {
-    bool actualStateConnection = await DataConnectionChecker().hasConnection;
-    setState((){
-      checkConnection = actualStateConnection;
-    });
+    var result = await Connectivity().checkConnectivity();
+    bool actualStateConnection;
+    if (result == ConnectivityResult.none) {
+      actualStateConnection=false;
+    } else if(result == ConnectivityResult.mobile) {
+      actualStateConnection=true;
+    }else if(result == ConnectivityResult.wifi){
+      actualStateConnection=true;
+    }
+    return actualStateConnection;
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: Colors.white,
-      body: Stack(
-        children: <Widget>[
-          PageView(
-            scrollDirection: Axis.horizontal,
-            controller: _controller,
-            physics: NeverScrollableScrollPhysics(),
+      body: FutureBuilder(
+        future: connectionState(),
+        builder: (BuildContext context, AsyncSnapshot snapshot) {
+          bool checkConnection = snapshot.data;
+          return Stack(
             children: <Widget>[
-              checkConnection?HomeFood():notConnection(),
-              Download(),
-              checkConnection?Favorites():notConnection()
+              PageView(
+                scrollDirection: Axis.horizontal,
+                controller: _controller,
+                physics: NeverScrollableScrollPhysics(),
+                children: <Widget>[
+                  checkConnection?HomeFood():notConnection(),
+                  Download(),
+                  checkConnection?Favorites():notConnection()
+                ],
+              ),
             ],
-          ),
-        ],
+          );
+        },
       ),
       floatingActionButton: FloatingActionButton(
         onPressed: (){menuFullScreen();},
@@ -64,9 +73,8 @@ class _FoodsState extends State<Foods> {
       floatingActionButtonLocation: FloatingActionButtonLocation.centerDocked,
       bottomNavigationBar: BottomAppBar(
         shape: CircularNotchedRectangle(),
-        notchMargin: 6.0,
-        color:Colors.transparent,
-        elevation: 9.0,
+        notchMargin: 0.0,
+        elevation: 0,
         clipBehavior: Clip.antiAlias,
         child: Container(
           height: 50.0,
@@ -75,7 +83,6 @@ class _FoodsState extends State<Foods> {
               topLeft: Radius.circular(25.0),
               topRight: Radius.circular(25.0)
             ),
-            color: Colors.white,
           ),
           child: Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -174,7 +181,7 @@ class DataSearch extends SearchDelegate<String>{
   Future<List> getRecipe() async {
     var result;
     try {
-      http.Response responseRandomRecipe = await http.get('http://192.168.100.54:3002/api/getRandomRecipe?idExisting=[]');
+      http.Response responseRandomRecipe = await http.get('http://3.23.131.0:3002/api/getRandomRecipe?idExisting=[]');
       if(responseRandomRecipe.statusCode == HttpStatus.ok){
         result = jsonDecode(responseRandomRecipe.body);
       }
@@ -189,7 +196,7 @@ class DataSearch extends SearchDelegate<String>{
   Future<List> getSearchRecipe( String query ) async {
     var result;
     try {
-      http.Response responseRecipe = await http.get('http://192.168.100.54:3002/api/searchRecipe?querySearch=$query');
+      http.Response responseRecipe = await http.get('http://3.23.131.0:3002/api/searchRecipe?querySearch=$query');
       if(responseRecipe.statusCode == HttpStatus.ok){
         result = jsonDecode(responseRecipe.body)["message"];
       }
@@ -262,7 +269,7 @@ class DataSearch extends SearchDelegate<String>{
                                         width: MediaQuery.of(context).size.width,
                                         child: ClipRRect(
                                           child: CachedNetworkImage(
-                                            imageUrl: "http://192.168.100.54:3002/"+(recipes[index]["image_recipes"][0]["route"]).replaceAll(r"\",'/'),
+                                            imageUrl: "http://3.23.131.0:3002/"+(recipes[index]["image_recipes"][0]["route"]).replaceAll(r"\",'/'),
                                             progressIndicatorBuilder: (context, url, downloadProgress) => 
                                               Center(child: CircularProgressIndicator(value: downloadProgress.progress),),
                                             errorWidget: (context, url, error) => Center(child: Icon(Icons.error),),
@@ -352,7 +359,7 @@ class DataSearch extends SearchDelegate<String>{
                                         width: MediaQuery.of(context).size.width,
                                         child: ClipRRect(
                                           child: CachedNetworkImage(
-                                            imageUrl: "http://192.168.100.54:3002/"+(recipes[index]["image_recipes"][0]["route"]).replaceAll(r"\",'/'),
+                                            imageUrl: "http://3.23.131.0:3002/"+(recipes[index]["image_recipes"][0]["route"]).replaceAll(r"\",'/'),
                                             progressIndicatorBuilder: (context, url, downloadProgress) => 
                                               Center(child: CircularProgressIndicator(value: downloadProgress.progress),),
                                             errorWidget: (context, url, error) => Center(child: Icon(Icons.error),),

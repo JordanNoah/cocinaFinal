@@ -208,7 +208,7 @@ class _AddCommentaryState extends State<AddCommentary> {
   sendComentary(assessment,commentary,idUser,idRecipe) async {
     try {
       final http.Response response = await http.post(
-        'http://192.168.100.54:3002/api/addCommentRecipe',
+        'http://3.23.131.0:3002/api/addCommentRecipe',
         headers: <String, String>{
           'Content-Type': 'application/json; charset=UTF-8',
         },

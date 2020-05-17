@@ -197,7 +197,7 @@ class ClientDatabaseProvider{
         var exist = await direcImage.exists();
         print(exist);
         if (!exist) {
-          await ImageDownloader.downloadImage("http://192.168.100.54:3002/"+route.replaceAll(r"\",'/'),destination: AndroidDestinationType.custom(directory: "/recipes")..inExternalFilesDir()..subDirectory("$type/$nameImage"));
+          await ImageDownloader.downloadImage("http://3.23.131.0:3002/"+route.replaceAll(r"\",'/'),destination: AndroidDestinationType.custom(directory: "/recipes")..inExternalFilesDir()..subDirectory("$type/$nameImage"));
         }
       } catch (error) {
         print(error);

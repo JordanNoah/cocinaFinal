@@ -2,7 +2,6 @@ import 'dart:convert';
 import 'dart:io';
 
 import 'package:cached_network_image/cached_network_image.dart';
-import 'package:data_connection_checker/data_connection_checker.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 
@@ -11,7 +10,6 @@ import 'package:food_size/models/recipe_model.dart';
 import 'package:food_size/models/stepsRecipe_model.dart';
 import 'package:food_size/src/widgets/addCommentary.dart';
 import 'package:path_provider/path_provider.dart';
-import 'package:pimp_my_button/pimp_my_button.dart';
 import 'package:random_color/random_color.dart';
 import 'package:http/http.dart' as http;
 import 'package:smooth_star_rating/smooth_star_rating.dart';
@@ -77,10 +75,10 @@ class _ShowFoodState extends State<ShowFood> {
   Future loadRecipe() async{
     if (data[1]) {
       try {
-        http.Response responseRecipe = await http.get('http://192.168.100.54:3002/api/getRecipe?idRecipe='+data[0].toString());
+        http.Response responseRecipe = await http.get('http://3.23.131.0:3002/api/getRecipe?idRecipe='+data[0].toString());
         String resRecipe = responseRecipe.body;
         final jsonRecipe = jsonDecode(resRecipe)["message"];
-        http.Response responseComentaries = await http.get('http://192.168.100.54:3002/api/getCommentRecipe');
+        http.Response responseComentaries = await http.get('http://3.23.131.0:3002/api/getCommentRecipe');
         String resComentaries = responseComentaries.body;
         final jsonCommentaries = jsonDecode(resComentaries);
         setState(() {
@@ -90,7 +88,7 @@ class _ShowFoodState extends State<ShowFood> {
           imagesRecipe = recipe["image_recipes"];
           comentaries = jsonCommentaries;
         });
-        print("http://192.168.100.54:3002/"+(imagesRecipe[0]["route"]));
+        print("http://3.23.131.0:3002/"+(imagesRecipe[0]["route"]));
       } catch (e) {
       }
     } else {
@@ -127,10 +125,8 @@ class _ShowFoodState extends State<ShowFood> {
         });
       }
       final Directory extDir = await getExternalStorageDirectory();
-      bool actualStateConnection = await DataConnectionChecker().hasConnection;
       setState(() {
         extDirec = extDir;
-        checkConnection=actualStateConnection;
         recipe={"idRecipe":(recipeClass.idRecipe),"description":recipeClass.description,"title":recipeClass.title,"difficulty":recipeClass.difficulty,"approximateTime":recipeClass.aproxTime};
       });
     }
@@ -164,7 +160,7 @@ class _ShowFoodState extends State<ShowFood> {
                         child: data[1]
                           ?
                             CachedNetworkImage(
-                              imageUrl:("http://192.168.100.54:3002/"+(imagesRecipe[0]["route"]).replaceAll(r"\",'/')),
+                              imageUrl:("http://3.23.131.0:3002/"+(imagesRecipe[0]["route"]).replaceAll(r"\",'/')),
                               progressIndicatorBuilder: (context, url, downloadProgress) => 
                                 Center(child: CircularProgressIndicator(value: downloadProgress.progress),),
                               errorWidget: (context, url, error) => Center(child: Icon(Icons.error),),
@@ -337,69 +333,69 @@ class _ShowFoodState extends State<ShowFood> {
                           ],
                         ),
                       ),
-                      // Container(
-                      //   margin: EdgeInsets.only(top:15),
-                      //   child: Text("Number of dishes",style: TextStyle(color: Colors.grey,fontSize: 24,fontWeight: FontWeight.w600,letterSpacing: 1),),
-                      // ),
-                      // Container(
-                      //   margin: EdgeInsets.only(top: 20),
-                      //   child: Column(
-                      //     children: <Widget>[
-                      //       Container(
-                      //         height: 60,
-                      //         width: MediaQuery.of(context).size.width,
-                      //         decoration: BoxDecoration(
-                      //           color: Colors.blue.withOpacity(0.2),
-                      //           borderRadius: BorderRadius.circular(40)
-                      //         ),
-                      //         child: Row(
-                      //           mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                      //           children: <Widget>[
-                      //             Container(
-                      //               margin: EdgeInsets.only(left: 15),
-                      //               child: IconButton(
-                      //                 color: cantDishes!=1?Colors.black:Colors.grey,
-                      //                 icon: Icon(Icons.remove),
-                      //                 onPressed: (){
-                      //                   setState(() {
-                      //                     if (cantDishes>1) {
-                      //                       cantDishes=cantDishes-1;
-                      //                     }
-                      //                   });
-                      //                 },
-                      //               ),
-                      //             ),
-                      //             Container(
-                      //               height: 60,
-                      //               width: 60,
-                      //               decoration: BoxDecoration(
-                      //                 borderRadius: BorderRadius.circular(40),
-                      //                 color: Colors.white,
-                      //               ),
-                      //               child: Center(
-                      //                 child: Text(cantDishes.toString() ,style: TextStyle(color: Colors.blue,fontWeight: FontWeight.bold,fontSize: 20,letterSpacing: 1),),
-                      //               ),
-                      //             ),
-                      //             Container(
-                      //               margin: EdgeInsets.only(right: 15),
-                      //               child: IconButton(
-                      //                 icon: Icon(Icons.plus_one),
-                      //                 color: cantDishes!=16?Colors.black:Colors.grey,
-                      //                 onPressed: (){
-                      //                   setState(() {
-                      //                     if(cantDishes<16){
-                      //                       cantDishes=cantDishes+1;
-                      //                     }
-                      //                   });
-                      //                 },
-                      //               ),
-                      //             )
-                      //           ],
-                      //         ),
-                      //       )
-                      //     ],
-                      //   ),
-                      // ),
+                      Container(
+                        margin: EdgeInsets.only(top:15),
+                        child: Text("Number of dishes",style: TextStyle(color: Colors.grey,fontSize: 24,fontWeight: FontWeight.w600,letterSpacing: 1),),
+                      ),
+                      Container(
+                        margin: EdgeInsets.only(top: 20),
+                        child: Column(
+                          children: <Widget>[
+                            Container(
+                              height: 60,
+                              width: MediaQuery.of(context).size.width,
+                              decoration: BoxDecoration(
+                                color: Colors.blue.withOpacity(0.2),
+                                borderRadius: BorderRadius.circular(40)
+                              ),
+                              child: Row(
+                                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                                children: <Widget>[
+                                  Container(
+                                    margin: EdgeInsets.only(left: 15),
+                                    child: IconButton(
+                                      color: cantDishes!=1?Colors.black:Colors.grey,
+                                      icon: Icon(Icons.remove),
+                                      onPressed: (){
+                                        setState(() {
+                                          if (cantDishes>1) {
+                                            cantDishes=cantDishes-1;
+                                          }
+                                        });
+                                      },
+                                    ),
+                                  ),
+                                  Container(
+                                    height: 60,
+                                    width: 60,
+                                    decoration: BoxDecoration(
+                                      borderRadius: BorderRadius.circular(40),
+                                      color: Colors.white,
+                                    ),
+                                    child: Center(
+                                      child: Text(cantDishes.toString() ,style: TextStyle(color: Colors.blue,fontWeight: FontWeight.bold,fontSize: 20,letterSpacing: 1),),
+                                    ),
+                                  ),
+                                  Container(
+                                    margin: EdgeInsets.only(right: 15),
+                                    child: IconButton(
+                                      icon: Icon(Icons.plus_one),
+                                      color: cantDishes!=16?Colors.black:Colors.grey,
+                                      onPressed: (){
+                                        setState(() {
+                                          if(cantDishes<16){
+                                            cantDishes=cantDishes+1;
+                                          }
+                                        });
+                                      },
+                                    ),
+                                  )
+                                ],
+                              ),
+                            )
+                          ],
+                        ),
+                      ),
                       Container(
                         width: MediaQuery.of(context).size.width,
                         margin: EdgeInsets.only(top: 30),
@@ -443,7 +439,7 @@ class _ShowFoodState extends State<ShowFood> {
                                 child: data[1]
                                   ?
                                     CachedNetworkImage(
-                                      imageUrl:("http://192.168.100.54:3002/"+(recipeIngredients[index]["ingredient"]["routeImage"]).replaceAll(r"\",'/')),
+                                      imageUrl:("http://3.23.131.0:3002/"+(recipeIngredients[index]["ingredient"]["routeImage"]).replaceAll(r"\",'/')),
                                       progressIndicatorBuilder: (context, url, downloadProgress) => 
                                         Center(child: CircularProgressIndicator(value: downloadProgress.progress),),
                                       errorWidget: (context, url, error) => Center(child: Icon(Icons.error),),
@@ -722,7 +718,7 @@ class _ShowFoodState extends State<ShowFood> {
                     width: MediaQuery.of(context).size.width,
                     child: data[1]
                       ?
-                        Image.network("http://192.168.100.54:3002/"+(ingredient["ingredient"]["routeImage"]).replaceAll(r"\",'/').toString(),fit: BoxFit.cover,)
+                        Image.network("http://3.23.131.0:3002/"+(ingredient["ingredient"]["routeImage"]).replaceAll(r"\",'/').toString(),fit: BoxFit.cover,)
                           :
                             Image.file(File(extDirec.path+'/recipes/ingredient/'+ingredient["ingredient"]["routeImage"])),
                   ),

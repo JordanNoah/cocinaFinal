@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:food_size/src/pages/categories.dart';
+import 'package:food_size/src/pages/listFood.dart';
 import 'package:food_size/src/pages/foods.dart';
 import 'package:food_size/src/pages/playRecipie.dart';
 import 'package:food_size/src/pages/showFood.dart';
@@ -26,15 +27,18 @@ class RouterGenerator{
           )
         );
         break;
-      case '/categorie':
+      case '/listFood':
         return MaterialPageRoute(
-          builder: (_) => Categories(
+          builder: (_) => ListFood(
             data:args
           )
         );
-        break;  
+        break;
+      case'/categories':
+        return MaterialPageRoute(
+          builder: (_) => Categories()
+        );
       default:
-
       return _errorRoute();
     }
   }
