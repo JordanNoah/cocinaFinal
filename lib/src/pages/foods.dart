@@ -46,20 +46,26 @@ class _FoodsState extends State<Foods> {
         future: connectionState(),
         builder: (BuildContext context, AsyncSnapshot snapshot) {
           bool checkConnection = snapshot.data;
-          return Stack(
-            children: <Widget>[
-              PageView(
-                scrollDirection: Axis.horizontal,
-                controller: _controller,
-                physics: NeverScrollableScrollPhysics(),
-                children: <Widget>[
-                  checkConnection?HomeFood():notConnection(),
-                  Download(),
-                  checkConnection?Favorites():notConnection()
-                ],
-              ),
-            ],
-          );
+          if(checkConnection==null){
+            return Center(
+              child: CircularProgressIndicator(),
+            );
+          }else{
+            return Stack(
+              children: <Widget>[
+                PageView(
+                  scrollDirection: Axis.horizontal,
+                  controller: _controller,
+                  physics: NeverScrollableScrollPhysics(),
+                  children: <Widget>[
+                    checkConnection?HomeFood():notConnection(),
+                    Download(),
+                    checkConnection?Favorites():notConnection()
+                  ],
+                ),
+              ],
+            );
+          }
         },
       ),
       floatingActionButton: FloatingActionButton(

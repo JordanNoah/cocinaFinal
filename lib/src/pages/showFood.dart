@@ -9,6 +9,8 @@ import 'package:food_size/core/database.dart';
 import 'package:food_size/models/recipe_model.dart';
 import 'package:food_size/models/stepsRecipe_model.dart';
 import 'package:food_size/src/widgets/addCommentary.dart';
+import 'package:food_size/src/widgets/favoriteRecipe.dart';
+import 'package:food_size/src/widgets/recipeDifficulty.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:random_color/random_color.dart';
 import 'package:http/http.dart' as http;
@@ -32,6 +34,7 @@ class _ShowFoodState extends State<ShowFood> {
   Directory extDirec;
   bool checkConnection = false;
   bool titleWarped = false;
+  bool liked = false;
 
   var recipe;
   List imagesRecipe=[];
@@ -75,7 +78,7 @@ class _ShowFoodState extends State<ShowFood> {
   Future loadRecipe() async{
     if (data[1]) {
       try {
-        http.Response responseRecipe = await http.get('http://3.23.131.0:3002/api/getRecipe?idRecipe='+data[0].toString());
+        http.Response responseRecipe = await http.get('http://3.23.131.0:3002/api/getRecipe?idRecipe='+data[0].toString()+'&idUser=1');
         String resRecipe = responseRecipe.body;
         final jsonRecipe = jsonDecode(resRecipe)["message"];
         http.Response responseComentaries = await http.get('http://3.23.131.0:3002/api/getCommentRecipe');
@@ -87,8 +90,8 @@ class _ShowFoodState extends State<ShowFood> {
           stepsRecipe = recipe["step_recipes"];
           imagesRecipe = recipe["image_recipes"];
           comentaries = jsonCommentaries;
+          liked=jsonDecode(resRecipe)["liked"];
         });
-        print("http://3.23.131.0:3002/"+(imagesRecipe[0]["route"]));
       } catch (e) {
       }
     } else {
@@ -193,50 +196,54 @@ class _ShowFoodState extends State<ShowFood> {
                   ),
                 )
               ),
+              leading: IconButton(
+                icon: Icon(Icons.arrow_back_ios),
+                onPressed: (){Navigator.of(context).pushNamed('/');},
+              ),
               actions: <Widget>[
-                    PopupMenuButton(
-                      itemBuilder: (_) => <PopupMenuItem<dynamic>>[
-
-                        new PopupMenuItem<dynamic>(
-                          child: Row(
-                            children: <Widget>[
-                              Container(
-                                margin: EdgeInsets.symmetric(horizontal: 3),
-                                child: Icon(Icons.play_circle_outline,color: Colors.black,)
-                              ),
-                              Text('Play recipe')
-                            ],
-                          ), 
-                          value: 'play'
-                        ),
-                        new PopupMenuItem<dynamic>(
-                          child: Row(
-                            children: <Widget>[
-                              Container(
-                                margin: EdgeInsets.symmetric(horizontal: 3),
-                                child: itsDownloaded?Icon(Icons.delete_outline, color: Colors.black,):Icon(Icons.cloud_download,color: Colors.black,),
-                              ),
-                              Text(itsDownloaded?'Remove':'Download')
-                            ],
-                          ), value: itsDownloaded?'remove':'download'
-                        ),
-                      ],
-                      onSelected: (value) {
-                        switch (value) {
-                          case 'play' : 
-                            Navigator.of(context).pushNamed("/playRecipie",arguments: recipe);
-                            break;
-                          case 'download':
-                          downloadRecipe();
-                            break;
-                          case 'remove':
-                            removeDownload();
-                            break;
-                          default:
-                          recipeInside();
-                        }
-                      }
-                    )
+                FavoriteRecipe(liked: liked,idRecipe: recipe["idRecipe"],),
+                PopupMenuButton(
+                  itemBuilder: (_) => <PopupMenuItem<dynamic>>[
+                    new PopupMenuItem<dynamic>(
+                      child: Row(
+                        children: <Widget>[
+                          Container(
+                            margin: EdgeInsets.symmetric(horizontal: 3),
+                            child: Icon(Icons.play_circle_outline,color: Colors.black,)
+                          ),
+                          Text('Play recipe')
+                        ],
+                      ), 
+                      value: 'play'
+                    ),
+                    new PopupMenuItem<dynamic>(
+                      child: Row(
+                        children: <Widget>[
+                          Container(
+                            margin: EdgeInsets.symmetric(horizontal: 3),
+                            child: itsDownloaded?Icon(Icons.delete_outline, color: Colors.black,):Icon(Icons.cloud_download,color: Colors.black,),
+                          ),
+                          Text(itsDownloaded?'Remove':'Download')
+                        ],
+                      ), value: itsDownloaded?'remove':'download'
+                    ),
+                  ],
+                  onSelected: (value) {
+                    switch (value) {
+                      case 'play' : 
+                        Navigator.of(context).pushNamed("/playRecipie",arguments: recipe);
+                        break;
+                      case 'download':
+                      downloadRecipe();
+                        break;
+                      case 'remove':
+                        removeDownload();
+                        break;
+                      default:
+                      recipeInside();
+                    }
+                  }
+                )
               ],
               elevation: 0,
             ),
@@ -281,53 +288,7 @@ class _ShowFoodState extends State<ShowFood> {
                               children: <Widget>[
                                 Text("Difficulty",style: TextStyle(color: Colors.grey,fontWeight: FontWeight.bold,letterSpacing: 1)),
                                 SizedBox(height: 10,),
-                                Row(
-                                  children: <Widget>[
-                                    Container(
-                                      decoration: BoxDecoration(
-                                        color: Colors.grey,
-                                        borderRadius: BorderRadius.circular(40.0)
-                                      ),
-                                      child: Row(
-                                        children: <Widget>[
-                                          Container(
-                                            height: 10,
-                                            width: 16.66,
-                                            decoration: BoxDecoration(
-                                              color: Colors.orange,
-                                              borderRadius: BorderRadius.only(
-                                                topLeft: Radius.circular(40.0),
-                                                bottomLeft:Radius.circular(40.0), 
-                                              )
-                                            ),
-                                          ),
-                                          Container(
-                                            height: 10,
-                                            width: 16.66,
-                                            decoration: BoxDecoration(
-                                              color: recipe["difficulty"]=="Medium"||recipe["difficulty"]=="Hard"?Colors.orange:Colors.transparent,
-                                            ),
-                                          ),
-                                          Container(
-                                            height: 10,
-                                            width: 16.66,
-                                            decoration: BoxDecoration(
-                                              color:recipe["difficulty"]=="Hard" ? Colors.orange : Colors.transparent,
-                                              borderRadius: BorderRadius.only(
-                                                topRight: Radius.circular(40.0),
-                                                bottomRight:Radius.circular(40.0), 
-                                              )
-                                            ),
-                                          ),
-                                        ],
-                                      ),
-                                    ),
-                                    SizedBox(width: 10,),
-                                    Container(
-                                      child: Text(recipe["difficulty"],style: TextStyle(color: Colors.red,fontWeight: FontWeight.bold,letterSpacing: 1),),
-                                    ),
-                                  ],
-                                ),
+                                RecipeDifficulty(recipe["difficulty"])
                               ],
                             )
                           ],
@@ -845,7 +806,6 @@ class _ShowFoodState extends State<ShowFood> {
       }
     );
     var existRecipe = await ClientDatabaseProvider.db.getRecipeWithId(recipeObj.idRecipe);
-    print(existRecipe);
     if (existRecipe==null) {
       var response = await ClientDatabaseProvider.db.addRecipeToDatabase(recipeObj,stepsRecipe,imagesRecipe,recipeIngredients,true);
       if (response==1) {
