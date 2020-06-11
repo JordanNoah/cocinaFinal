@@ -1,14 +1,11 @@
-import 'dart:convert';
-import 'dart:io';
-
-import 'package:cached_network_image/cached_network_image.dart';
 import 'package:connectivity/connectivity.dart';
+import 'package:flare_flutter/flare_actor.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:food_size/src/pages/downloads.dart';
 import 'package:food_size/src/pages/favorites.dart';
 import 'package:food_size/src/pages/homeFood.dart';
-import 'package:http/http.dart' as http;
+import 'package:food_size/src/pages/search.dart';
 import 'package:full_screen_menu/full_screen_menu.dart';
 
 class Foods extends StatefulWidget {
@@ -59,6 +56,7 @@ class _FoodsState extends State<Foods> {
                   physics: NeverScrollableScrollPhysics(),
                   children: <Widget>[
                     checkConnection?HomeFood():notConnection(),
+                    checkConnection?Search():notConnection(),
                     Download(),
                     checkConnection?Favorites():notConnection()
                   ],
@@ -72,7 +70,7 @@ class _FoodsState extends State<Foods> {
         onPressed: (){menuFullScreen();},
         child: Container(
           padding: EdgeInsets.all(8),
-          child: SvgPicture.asset('assets/images/ensalada.svg'),
+          child: FlareActor('assets/animations/salad.flr'),
         ),
         backgroundColor: Colors.deepOrangeAccent,
       ),
@@ -108,7 +106,8 @@ class _FoodsState extends State<Foods> {
                     IconButton(
                       icon: Icon(Icons.search,color: Color(0xFF676E79)), 
                       onPressed: (){
-                        showSearch(context: context, delegate: DataSearch());
+                        _controller.jumpToPage(1);
+                        // showSearch(context: context, delegate: DataSearch());
                       },
                       color: Colors.black,
                     ),
@@ -124,13 +123,13 @@ class _FoodsState extends State<Foods> {
                     IconButton(
                       icon: Icon(Icons.file_download, color: Color(0xFFEF7532),),
                       onPressed: (){
-                        _controller.jumpToPage(1);
+                        _controller.jumpToPage(2);
                       },
                     ),
                     IconButton(
                       icon: Icon(Icons.favorite_border,color: Colors.red),
                       onPressed: (){
-                        _controller.jumpToPage(2);
+                        _controller.jumpToPage(3);
                       },
                     )
                   ],
@@ -181,239 +180,4 @@ Widget notConnection(){
       ],
     ),
   );
-}
-class DataSearch extends SearchDelegate<String>{
-
-  Future<List> getRecipe() async {
-    var result;
-    try {
-      http.Response responseRandomRecipe = await http.get('http://3.23.131.0:3002/api/getRandomRecipe?idExisting=[]');
-      if(responseRandomRecipe.statusCode == HttpStatus.ok){
-        result = jsonDecode(responseRandomRecipe.body);
-      }
-    } on Exception catch (e) {
-      if(e.toString().contains('SocketException')){
-        result = e.toString();
-      }
-    }
-    return result;
-  }
-
-  Future<List> getSearchRecipe( String query ) async {
-    var result;
-    try {
-      http.Response responseRecipe = await http.get('http://3.23.131.0:3002/api/searchRecipe?querySearch=$query');
-      if(responseRecipe.statusCode == HttpStatus.ok){
-        result = jsonDecode(responseRecipe.body)["message"];
-      }
-    } on Exception catch (e) {
-      if(e.toString().contains('SocketException')){
-        result = e.toString();
-      }
-    }
-    return result;
-  }
-
-  @override
-  List<Widget> buildActions(BuildContext context) {
-    // acciones para el app bar
-    return [
-      IconButton(icon: Icon(Icons.clear),onPressed: (){
-        query = "";
-      },)
-    ];
-  }
-
-  @override
-  Widget buildLeading(BuildContext context) {
-    // iconos para el appbar
-    return IconButton(
-      icon: AnimatedIcon(
-        icon: AnimatedIcons.menu_arrow,
-        progress: transitionAnimation,
-      ), 
-      onPressed: (){close(context, null);}
-    );
-  }
-
-  @override
-  Widget buildResults(BuildContext context) {
-    // mostrar resultados basados en  la seleccion
-    final suggestionList = query.isEmpty?getRecipe():getSearchRecipe(query);
-    print(query);
-    return FutureBuilder(
-      future: suggestionList,
-      builder: (BuildContext context, AsyncSnapshot snapshot) {
-        if(snapshot.hasError){
-          return Center(child: Text('Error'));
-        }
-        if(snapshot.connectionState == ConnectionState.done){
-          if(snapshot.hasData){
-            List recipes = snapshot.data;
-            final orientation = MediaQuery.of(context).orientation;
-            return GridView.builder(
-              itemCount: recipes.length,
-              gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
-                crossAxisCount: (orientation == Orientation.portrait) ? 2 : 3),
-              itemBuilder: (BuildContext context,int index){
-                return Container(
-                  child: Card(
-                    child: GestureDetector(
-                      onTap: (){Navigator.of(context).pushNamed("/showfood",arguments: [recipes[index]['idRecipe'],true]);}, 
-                      child: Container(
-                        margin: EdgeInsets.only(bottom: 5),
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: <Widget>[
-                            Expanded(
-                              child: Container(
-                                child: Container(
-                                  child: Stack(
-                                    children: <Widget>[
-                                      Container(
-                                        height:MediaQuery.of(context).size.height,
-                                        width: MediaQuery.of(context).size.width,
-                                        child: ClipRRect(
-                                          child: CachedNetworkImage(
-                                            imageUrl: "http://3.23.131.0:3002/"+(recipes[index]["image_recipes"][0]["route"]).replaceAll(r"\",'/'),
-                                            progressIndicatorBuilder: (context, url, downloadProgress) => 
-                                              Center(child: CircularProgressIndicator(value: downloadProgress.progress),),
-                                            errorWidget: (context, url, error) => Center(child: Icon(Icons.error),),
-                                            fit: BoxFit.cover,
-                                          ),
-                                        ),
-                                      ),
-                                    ],
-                                  ),
-                                ),
-                              ),
-                            ),
-                            Container(
-                              margin: EdgeInsets.only(left: 10,right: 5,top: 10,bottom: 10),
-                              child: Column(
-                                mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                                crossAxisAlignment: CrossAxisAlignment.start,
-                                children: <Widget>[
-                                  Text(recipes[index]["title"],overflow: TextOverflow.ellipsis,style: TextStyle(color: Colors.blueGrey,fontWeight: FontWeight.w500,fontSize: 12),),
-                                  Row(
-                                    children: <Widget>[
-                                      Icon(Icons.timer,color: Colors.grey,size: 11,),
-                                      Text("30~40 min",style: TextStyle(color: Colors.grey,fontWeight: FontWeight.bold,fontSize: 10),),
-                                    ],
-                                  ),
-                                ],
-                              ),
-                            )
-                          ],
-                        ),
-                      ),
-                    ),
-                  ),
-                );
-              },
-            );
-          }else{
-            return Center(
-              child: Text("Not found"),
-            );
-          }
-        }else{
-          return Center(
-            child: CircularProgressIndicator(),
-          );
-        }
-      },
-    );
-  }
-
-  @override
-  Widget buildSuggestions(BuildContext context) {
-    // muestras cuando alguien busca algo
-    final suggestionList = query.isEmpty?getRecipe():getSearchRecipe(query);
-    print(query);
-    return FutureBuilder(
-      future: suggestionList,
-      builder: (BuildContext context, AsyncSnapshot snapshot) {
-        if(snapshot.hasError){
-          return Center(child: Text('Error'));
-        }
-        if(snapshot.connectionState == ConnectionState.done){
-          if(snapshot.hasData){
-            List recipes = snapshot.data;
-            final orientation = MediaQuery.of(context).orientation;
-            return GridView.builder(
-              itemCount: recipes.length,
-              gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
-                crossAxisCount: (orientation == Orientation.portrait) ? 2 : 3),
-              itemBuilder: (BuildContext context,int index){
-                return Container(
-                  child: Card(
-                    child: GestureDetector(
-                      onTap: (){Navigator.of(context).pushNamed("/showfood",arguments: [recipes[index]['idRecipe'],true]);}, 
-                      child: Container(
-                        margin: EdgeInsets.only(bottom: 5),
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: <Widget>[
-                            Expanded(
-                              child: Container(
-                                child: Container(
-                                  child: Stack(
-                                    children: <Widget>[
-                                      Container(
-                                        height:MediaQuery.of(context).size.height,
-                                        width: MediaQuery.of(context).size.width,
-                                        child: ClipRRect(
-                                          child: CachedNetworkImage(
-                                            imageUrl: "http://3.23.131.0:3002/"+(recipes[index]["image_recipes"][0]["route"]).replaceAll(r"\",'/'),
-                                            progressIndicatorBuilder: (context, url, downloadProgress) => 
-                                              Center(child: CircularProgressIndicator(value: downloadProgress.progress),),
-                                            errorWidget: (context, url, error) => Center(child: Icon(Icons.error),),
-                                            fit: BoxFit.cover,
-                                          ),
-                                        ),
-                                      ),
-                                    ],
-                                  ),
-                                ),
-                              ),
-                            ),
-                            Container(
-                              margin: EdgeInsets.only(left: 10,right: 5,top: 10,bottom: 10),
-                              child: Column(
-                                mainAxisAlignment: MainAxisAlignment.start,
-                                crossAxisAlignment: CrossAxisAlignment.start,
-                                children: <Widget>[
-                                  Text(recipes[index]["title"],overflow: TextOverflow.ellipsis,style: TextStyle(color: Colors.blueGrey,fontWeight: FontWeight.w500,fontSize: 12),),
-                                  Row(
-                                    children: <Widget>[
-                                      Icon(Icons.timer,color: Colors.grey,size: 11,),
-                                      SizedBox(width: 5,),
-                                      Text("30~40 min",style: TextStyle(color: Colors.grey,fontWeight: FontWeight.bold,fontSize: 10),),
-                                    ],
-                                  ),
-                                ],
-                              ),
-                            )
-                          ],
-                        ),
-                      ),
-                    ),
-                  ),
-                );
-              },
-            );
-          }else{
-            return Center(
-              child: Text("Not found"),
-            );
-          }
-        }else{
-          return Center(
-            child: CircularProgressIndicator(),
-          );
-        }
-      },
-    );
-  }
 }

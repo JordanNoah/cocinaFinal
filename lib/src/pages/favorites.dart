@@ -1,5 +1,6 @@
 import 'dart:convert';
 
+import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 
@@ -41,42 +42,50 @@ class _FavoritesState extends State<Favorites> {
           SliverGrid(
             delegate:SliverChildBuilderDelegate(
               (BuildContext context,index){
-                return Container(
-                  margin: EdgeInsets.only(bottom: 5),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: <Widget>[
-                      Expanded(
-                        child: Container(
-                          margin: EdgeInsets.only(left: 10,right: 5,top: 5),
-                          decoration: BoxDecoration(
-                            color: Colors.black,
-                            borderRadius: BorderRadius.circular(10),
-                            image: DecorationImage(
-                              image: NetworkImage("http://3.23.131.0:3002/"+(myFavorite[index]["recipe"]["image_recipes"][0]["route"]).replaceAll(r"\",'/')),
-                              fit: BoxFit.cover
-                            )
+                return GestureDetector(
+                  onTap: (){Navigator.of(context).pushNamed("/showfood",arguments: [myFavorite[index]["idRecipe"],true,"myFavorite"]);},
+                  child: Container(
+                    margin: EdgeInsets.only(bottom: 5),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: <Widget>[
+                        Expanded(
+                          child: Container(
+                            margin: EdgeInsets.only(left: 10,right: 5,top: 5),
+                            decoration: BoxDecoration(
+                              borderRadius: BorderRadius.circular(10),
+                            ),
+                            child: ClipRRect(
+                              borderRadius: BorderRadius.circular(10),
+                              child: CachedNetworkImage(
+                                imageUrl:("http://3.23.131.0:3002/"+(myFavorite[index]["recipe"]["image_recipes"][0]["route"]).replaceAll(r"\",'/')),
+                                progressIndicatorBuilder: (context, url, downloadProgress) => 
+                                  Center(child: CircularProgressIndicator(value: downloadProgress.progress),),
+                                errorWidget: (context, url, error) => Center(child: Icon(Icons.error),),
+                                fit: BoxFit.cover,
+                              ),
+                            ),
                           ),
                         ),
-                      ),
-                      Container(
-                        margin: EdgeInsets.only(left: 10,right: 10,top:5),
-                        child: Column(
-                          mainAxisAlignment: MainAxisAlignment.start,
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: <Widget>[
-                            Text(myFavorite[index]["recipe"]["title"],overflow: TextOverflow.ellipsis,style: TextStyle(color: Colors.blueGrey,fontWeight: FontWeight.w500,fontSize: 12),),
-                            Row(
-                              children: <Widget>[
-                                Icon(Icons.timer,color: Colors.grey,size: 11,),
-                                SizedBox(width: 5,),
-                                Text("30~40 min",style: TextStyle(color: Colors.grey,fontWeight: FontWeight.bold,fontSize: 10),),
-                              ],
-                            ),
-                          ],
-                        ),
-                      )
-                    ],
+                        Container(
+                          margin: EdgeInsets.only(left: 10,right: 10,top:5),
+                          child: Column(
+                            mainAxisAlignment: MainAxisAlignment.start,
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: <Widget>[
+                              Text(myFavorite[index]["recipe"]["title"],overflow: TextOverflow.ellipsis,style: TextStyle(color: Colors.blueGrey,fontWeight: FontWeight.w500,fontSize: 12),),
+                              Row(
+                                children: <Widget>[
+                                  Icon(Icons.timer,color: Colors.grey,size: 11,),
+                                  SizedBox(width: 5,),
+                                  Text(myFavorite[index]["recipe"]["approximateTime"],style: TextStyle(color: Colors.grey,fontWeight: FontWeight.bold,fontSize: 10),),
+                                ],
+                              ),
+                            ],
+                          ),
+                        )
+                      ],
+                    ),
                   ),
                 );
               },

@@ -5,9 +5,10 @@ import 'package:cached_network_image/cached_network_image.dart';
 import 'package:carousel_slider/carousel_slider.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
-import 'package:food_size/src/icons/darts/list_fooddart_icons.dart';
+import 'package:food_size/src/widgets/categorieList.dart';
 import 'package:food_size/src/widgets/favoriteRecipe.dart';
-import 'package:food_size/src/widgets/horizontalListFood.dart';
+import 'package:food_size/src/widgets/mostVotedRecipe.dart';
+import 'package:food_size/src/widgets/recipeDemo.dart';
 import 'package:food_size/src/widgets/recipeDifficulty.dart';
 import 'package:http/http.dart' as http;
 import 'package:random_color/random_color.dart';
@@ -92,6 +93,7 @@ class _HomeFoodState extends State<HomeFood> {
       appBar: AppBar(
         elevation: 0,
         backgroundColor: Colors.transparent,
+        automaticallyImplyLeading: false,
         title: Row(
           crossAxisAlignment: CrossAxisAlignment.center,
           mainAxisAlignment: MainAxisAlignment.center,
@@ -136,7 +138,7 @@ class _HomeFoodState extends State<HomeFood> {
                             children: <Widget>[
                               Text("New recipes",style: TextStyle(fontWeight: FontWeight.bold,color: Colors.blueGrey,fontSize: 16),),
                               GestureDetector(
-                                onTap: (){Navigator.pushNamed(context, '/listFood',arguments: ["New recipes"]);},
+                                onTap: (){Navigator.pushNamed(context, '/listFood',arguments: ["New recipes",indexSelected]);},
                                 child: Text("Show more",style: TextStyle(color: Colors.blueAccent),),
                               )
                             ],
@@ -155,7 +157,7 @@ class _HomeFoodState extends State<HomeFood> {
                                 if (snapshot.connectionState == ConnectionState.done) {
                                   List recipe = snapshot.data;
                                   return CarouselSlider.builder(
-                                    itemCount: recipe.length, 
+                                    itemCount: recipe.length,
                                     itemBuilder: (BuildContext context, int index) =>
                                       Container(
                                         padding: EdgeInsets.all(10),
@@ -174,7 +176,7 @@ class _HomeFoodState extends State<HomeFood> {
                                                       child: ClipRRect(
                                                         borderRadius: BorderRadius.circular(10),
                                                         child: CachedNetworkImage(
-                                                          imageUrl: "http://3.23.131.0:3002/"+(recipe[index]["image_recipes"][0]["route"]).replaceAll(r"\",'/'),
+                                                          imageUrl: "http://3.23.131.0:3002/"+(recipe[index]["recipe_images"][0]["route"]).replaceAll(r"\",'/'),
                                                           progressIndicatorBuilder: (context, url, downloadProgress) => 
                                                             Center(child: CircularProgressIndicator(value: downloadProgress.progress),),
                                                           errorWidget: (context, url, error) => Center(child: Column(mainAxisAlignment: MainAxisAlignment.center,children: <Widget>[Icon(Icons.error),Text("Not found")],),),
@@ -292,20 +294,7 @@ class _HomeFoodState extends State<HomeFood> {
                       ],
                     ),
                   ),
-                  Container(
-                    margin: EdgeInsets.only(top: 20,left: 15,right: 15),
-                    child: Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                      children: <Widget>[
-                        Text("Most voted",style: TextStyle(fontWeight: FontWeight.bold,color: Colors.blueGrey,fontSize: 16),),
-                        GestureDetector(
-                          onTap: (){Navigator.pushNamed(context, '/listFood',arguments: ["Most voted"]);},
-                          child: Text("Show more",style: TextStyle(color: Colors.blueAccent),),
-                        )
-                      ],
-                    ),
-                  ),
-                  HorizontalListFood(),
+                  MostVotedRecipe(),
                   Container(
                     margin: EdgeInsets.only(top: 20,left: 15,right: 15),
                     child: Row(
@@ -319,22 +308,7 @@ class _HomeFoodState extends State<HomeFood> {
                       ],
                     ),
                   ),
-                  Container(
-                    margin: EdgeInsets.symmetric(horizontal: 10,vertical: 10),
-                    child: Wrap(
-                      alignment: WrapAlignment.spaceEvenly,
-                      children: <Widget>[
-                        category("Breakfast",Icon(Icons.free_breakfast,color: Colors.white,)),
-                        category("Lunch",Icon(List_fooddart.lunch,color: Colors.white,)),
-                        category("Dinner",Icon(Icons.local_dining,color: Colors.white,)),
-                        category("Pizzas",Icon(Icons.local_pizza,color: Colors.white,)),
-                        category("Juices",Icon(Icons.local_drink,color: Colors.white,)),
-                        category("Salads",Icon(List_fooddart.salad,color: Colors.white,)),
-                        category("Rices",Icon(List_fooddart.rice,color: Colors.white,)),
-                        category("Fitness",Icon(Icons.fitness_center,color: Colors.white,)),
-                      ],
-                    ),
-                  ),
+                  CategorieList(),
                   Container(
                     margin: EdgeInsets.only(bottom: 15,left: 15,right: 15),
                     child: Row(
@@ -353,91 +327,8 @@ class _HomeFoodState extends State<HomeFood> {
               randomRecipe!=null ? 
                 SliverGrid(
                   delegate: SliverChildBuilderDelegate(
-                    (BuildContext context, index){  
-                      return GestureDetector(
-                        onTap: (){Navigator.of(context).pushNamed("/showfood",arguments: [randomRecipe[index]['idRecipe'],true]);}, 
-                        child: Container(
-                          margin: EdgeInsets.only(bottom: 5),
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: <Widget>[
-                              Expanded(
-                                child: Container(
-                                  margin: EdgeInsets.only(right: 5,top: 5),                            
-                                  child: Container(
-                                    margin: EdgeInsets.all(6),
-                                    child: Stack(
-                                      children: <Widget>[
-                                        Container(
-                                          height:MediaQuery.of(context).size.height,
-                                          width: MediaQuery.of(context).size.width,
-                                          child: ClipRRect(
-                                            borderRadius: BorderRadius.circular(10),
-                                            child: CachedNetworkImage(
-                                              imageUrl: "http://3.23.131.0:3002/"+(randomRecipe[index]["image_recipes"][0]["route"]).replaceAll(r"\",'/'),
-                                              progressIndicatorBuilder: (context, url, downloadProgress) => 
-                                                Center(child: CircularProgressIndicator(value: downloadProgress.progress),),
-                                              errorWidget: (context, url, error) => Center(child: Column(mainAxisAlignment: MainAxisAlignment.center,children: <Widget>[Icon(Icons.error),Text("Not found")],),),
-                                              fit: BoxFit.cover,
-                                            ),
-                                          ),
-                                        ),
-                                        Container(
-                                          decoration: BoxDecoration(
-                                            borderRadius: BorderRadius.only(
-                                              topLeft: Radius.circular(10),
-                                              topRight: Radius.circular(10)
-                                            ),
-                                            gradient: LinearGradient(
-                                              stops: [
-                                                0.1,
-                                                0.3
-                                              ],
-                                              colors:[
-                                                Colors.black26,
-                                                Colors.transparent
-                                              ],
-                                              begin: Alignment.topRight,
-                                              end: Alignment.bottomLeft
-                                            )
-                                          ),
-                                          child:Container(
-                                            alignment: Alignment.topRight,
-                                            child: Card(
-                                              shape: RoundedRectangleBorder(
-                                                borderRadius: BorderRadius.circular(40)
-                                              ),
-                                              color: Colors.white,
-                                              child:FavoriteRecipe(liked: liked.contains(randomRecipe[index]["idRecipe"]),idRecipe: randomRecipe[index]["idRecipe"],)
-                                            )
-                                          )
-                                        ),
-                                      ],
-                                    ),
-                                  ),
-                                ),
-                              ),
-                              Container(
-                                margin: EdgeInsets.only(left: 10,right: 10,top:5),
-                                child: Column(
-                                  mainAxisAlignment: MainAxisAlignment.start,
-                                  crossAxisAlignment: CrossAxisAlignment.start,
-                                  children: <Widget>[
-                                    Text(randomRecipe[index]["title"],overflow: TextOverflow.ellipsis,style: TextStyle(color: Colors.blueGrey,fontWeight: FontWeight.w500,fontSize: 12),),
-                                    Row(
-                                      children: <Widget>[
-                                        Icon(Icons.timer,color: Colors.grey,size: 11,),
-                                        SizedBox(width: 5,),
-                                        Text(randomRecipe[index]["approximateTime"],style: TextStyle(color: Colors.grey,fontWeight: FontWeight.bold,fontSize: 10),),
-                                      ],
-                                    ),
-                                  ],
-                                ),
-                              )
-                            ],
-                          ),
-                        ),
-                      );
+                    (BuildContext context, index){
+                      return RecipeDemo(title: randomRecipe[index]["title"],isFavorite: liked.contains(randomRecipe[index]["idRecipe"]),urlImage: randomRecipe[index]["recipe_images"][0][    "route"],aproxTime: randomRecipe[index]["approximateTime"],idRecipe: randomRecipe[index]["idRecipe"],);
                     },
                     childCount: randomRecipe.length
                   ),

@@ -44,9 +44,11 @@ class _ListFoodState extends State<ListFood> {
   Future getRecipes() async{
     idRecipes.clear();
     try {
-      http.Response responseRecipe = await http.get("http://3.23.131.0:3002/api/getRandomRecipe?idExisting=$idRecipes");
+      http.Response responseRecipe;
+      responseRecipe = await http.get("http://3.23.131.0:3002/api/getRecipePerFilter?filter="+data[0]+"&idRecipes="+idRecipes.toString());
       String resRecipe = responseRecipe.body;
-      final jsonRecipe = jsonDecode(resRecipe);
+      final jsonRecipe = jsonDecode(resRecipe)["message"];
+      print(jsonRecipe);
       setState(() {
         recipes=jsonRecipe;
       });
@@ -72,9 +74,10 @@ class _ListFoodState extends State<ListFood> {
   void _onLoading() async{
     // monitor network fetch
     try {
-      http.Response responseRecipe = await http.get("http://3.23.131.0:3002/api/getRandomRecipe?idExisting=$idRecipes");
+      http.Response responseRecipe;
+      responseRecipe = await http.get("http://3.23.131.0:3002/api/getRecipePerFilter?filter="+data[0]+"&idRecipes="+idRecipes.toString());
       String resRecipe = responseRecipe.body;
-      final List jsonRecipe = jsonDecode(resRecipe);
+      final List jsonRecipe = jsonDecode(resRecipe)["message"];
       if(jsonRecipe.length==0){reachFinalRecipe=true;}
       for (var recipe in jsonRecipe) {
         idRecipes.add(recipe["idRecipe"]);
@@ -165,7 +168,7 @@ class _ListFoodState extends State<ListFood> {
                               borderRadius: BorderRadius.circular(10),
                               child: Container(
                                 child: CachedNetworkImage(
-                                  imageUrl: "http://3.23.131.0:3002/"+(recipes[i]["image_recipes"][0]["route"]).replaceAll(r"\",'/'),
+                                  imageUrl: "http://3.23.131.0:3002/"+(recipes[i]["recipe_images"][0]["route"]).replaceAll(r"\",'/'),
                                   progressIndicatorBuilder: (context, url, downloadProgress) => 
                                     Center(child: CircularProgressIndicator(value: downloadProgress.progress),),
                                   errorWidget: (context, url, error) => Center(child: Icon(Icons.error),),

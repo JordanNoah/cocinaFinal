@@ -87,11 +87,12 @@ class _ShowFoodState extends State<ShowFood> {
         setState(() {
           recipe=jsonRecipe;
           recipeIngredients=recipe["recipe_ingredients"];
-          stepsRecipe = recipe["step_recipes"];
-          imagesRecipe = recipe["image_recipes"];
+          stepsRecipe = recipe["recipe_steps"];
+          imagesRecipe = recipe["recipe_images"];
           comentaries = jsonCommentaries;
           liked=jsonDecode(resRecipe)["liked"];
         });
+        
       } catch (e) {
       }
     } else {
@@ -294,69 +295,65 @@ class _ShowFoodState extends State<ShowFood> {
                           ],
                         ),
                       ),
-                      Container(
-                        margin: EdgeInsets.only(top:15),
-                        child: Text("Number of dishes",style: TextStyle(color: Colors.grey,fontSize: 24,fontWeight: FontWeight.w600,letterSpacing: 1),),
-                      ),
-                      Container(
-                        margin: EdgeInsets.only(top: 20),
-                        child: Column(
-                          children: <Widget>[
-                            Container(
-                              height: 60,
-                              width: MediaQuery.of(context).size.width,
-                              decoration: BoxDecoration(
-                                color: Colors.blue.withOpacity(0.2),
-                                borderRadius: BorderRadius.circular(40)
-                              ),
-                              child: Row(
-                                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                                children: <Widget>[
-                                  Container(
-                                    margin: EdgeInsets.only(left: 15),
-                                    child: IconButton(
-                                      color: cantDishes!=1?Colors.black:Colors.grey,
-                                      icon: Icon(Icons.remove),
-                                      onPressed: (){
-                                        setState(() {
-                                          if (cantDishes>1) {
-                                            cantDishes=cantDishes-1;
-                                          }
-                                        });
-                                      },
-                                    ),
-                                  ),
-                                  Container(
-                                    height: 60,
-                                    width: 60,
-                                    decoration: BoxDecoration(
-                                      borderRadius: BorderRadius.circular(40),
-                                      color: Colors.white,
-                                    ),
-                                    child: Center(
-                                      child: Text(cantDishes.toString() ,style: TextStyle(color: Colors.blue,fontWeight: FontWeight.bold,fontSize: 20,letterSpacing: 1),),
-                                    ),
-                                  ),
-                                  Container(
-                                    margin: EdgeInsets.only(right: 15),
-                                    child: IconButton(
-                                      icon: Icon(Icons.plus_one),
-                                      color: cantDishes!=16?Colors.black:Colors.grey,
-                                      onPressed: (){
-                                        setState(() {
-                                          if(cantDishes<16){
-                                            cantDishes=cantDishes+1;
-                                          }
-                                        });
-                                      },
-                                    ),
-                                  )
-                                ],
-                              ),
-                            )
-                          ],
-                        ),
-                      ),
+                      // Container(
+                      //   margin: EdgeInsets.only(top: 20),
+                      //   child: Column(
+                      //     children: <Widget>[
+                      //       Container(
+                      //         height: 60,
+                      //         width: MediaQuery.of(context).size.width,
+                      //         decoration: BoxDecoration(
+                      //           color: Colors.blue.withOpacity(0.2),
+                      //           borderRadius: BorderRadius.circular(40)
+                      //         ),
+                      //         child: Row(
+                      //           mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      //           children: <Widget>[
+                      //             Container(
+                      //               margin: EdgeInsets.only(left: 15),
+                      //               child: IconButton(
+                      //                 color: cantDishes!=1?Colors.black:Colors.grey,
+                      //                 icon: Icon(Icons.remove),
+                      //                 onPressed: (){
+                      //                   setState(() {
+                      //                     if (cantDishes>1) {
+                      //                       cantDishes=cantDishes-1;
+                      //                     }
+                      //                   });
+                      //                 },
+                      //               ),
+                      //             ),
+                      //             Container(
+                      //               height: 60,
+                      //               width: 60,
+                      //               decoration: BoxDecoration(
+                      //                 borderRadius: BorderRadius.circular(40),
+                      //                 color: Colors.white,
+                      //               ),
+                      //               child: Center(
+                      //                 child: Text(cantDishes.toString() ,style: TextStyle(color: Colors.blue,fontWeight: FontWeight.bold,fontSize: 20,letterSpacing: 1),),
+                      //               ),
+                      //             ),
+                      //             Container(
+                      //               margin: EdgeInsets.only(right: 15),
+                      //               child: IconButton(
+                      //                 icon: Icon(Icons.plus_one),
+                      //                 color: cantDishes!=16?Colors.black:Colors.grey,
+                      //                 onPressed: (){
+                      //                   setState(() {
+                      //                     if(cantDishes<16){
+                      //                       cantDishes=cantDishes+1;
+                      //                     }
+                      //                   });
+                      //                 },
+                      //               ),
+                      //             )
+                      //           ],
+                      //         ),
+                      //       )
+                      //     ],
+                      //   ),
+                      // ),
                       Container(
                         width: MediaQuery.of(context).size.width,
                         margin: EdgeInsets.only(top: 30),
@@ -685,7 +682,7 @@ class _ShowFoodState extends State<ShowFood> {
                   ),
                   Container(
                     padding: EdgeInsets.all(20),
-                    child: Text(newCant(ingredient["quantity"]).toString()),
+                    child: Text(ingredient["quantity"]),
                   )
                 ],
               ),
