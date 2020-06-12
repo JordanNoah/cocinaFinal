@@ -11,7 +11,6 @@ import 'package:food_size/src/widgets/mostVotedRecipe.dart';
 import 'package:food_size/src/widgets/recipeDemo.dart';
 import 'package:food_size/src/widgets/recipeDifficulty.dart';
 import 'package:http/http.dart' as http;
-import 'package:random_color/random_color.dart';
 import 'package:smooth_star_rating/smooth_star_rating.dart';
 
 class HomeFood extends StatefulWidget {
@@ -26,7 +25,6 @@ class _HomeFoodState extends State<HomeFood> {
   final categoryFood = ["Vegan","Vegetarian"];
   List newRecipes = [];
   List randomRecipe = [];
-  RandomColor _randomColor = RandomColor();
   List liked=[];
 
   @override
@@ -215,18 +213,22 @@ class _HomeFoodState extends State<HomeFood> {
                                                               SmoothStarRating(
                                                                 allowHalfRating: true,
                                                                 starCount: 5,
-                                                                rating: 4.0,
+                                                                rating: recipe[index]["recipe_comments"][0]["totalAssessment"],
                                                                 size: 15.0,
                                                                 filledIconData: Icons.star,
                                                                 halfFilledIconData: Icons.star_half,
                                                                 color: Colors.yellow,
-                                                                borderColor: Colors.green,
+                                                                borderColor: Colors.black,
                                                                 spacing:0.0
                                                               ),
                                                               SizedBox(width: 5),
-                                                              Text("4.0",style: TextStyle(fontSize: 12),),
+                                                              Text(recipe[index]["recipe_comments"][0]["totalAssessment"].toString(),style: TextStyle(fontSize: 12),),
                                                               SizedBox(width: 6,),
-                                                              Text("(+99 reviews)",style: TextStyle(fontSize: 12),),
+                                                              recipe[index]['recipe_comments'][0]['countOfReview']>99
+                                                                ?
+                                                                  Text("(+99 reviews)",style: TextStyle(fontSize: 12),)
+                                                                    :
+                                                                      Text("("+recipe[index]["recipe_comments"][0]["countOfReview"].toString()+" reviews)",style: TextStyle(fontSize: 12),)
                                                             ],
                                                           ),
                                                         ],
@@ -367,57 +369,6 @@ class _HomeFoodState extends State<HomeFood> {
             ],
           ),
         ),
-      ),
-    );
-  }
-
-  Widget category(categoriesName ,Icon iconName){
-    Color _color = _randomColor.randomColor(
-      colorHue: ColorHue.multiple(colorHues:[ColorHue.red, ColorHue.blue]),
-      colorBrightness: ColorBrightness.light
-    );
-    return GestureDetector(
-      onTap: (){Navigator.pushNamed(context, '/listFood',arguments: [categoriesName]);},
-      child: Container(
-        margin: EdgeInsets.all(5),
-        width: 75,
-        height: 100,
-        decoration: BoxDecoration(
-          borderRadius: BorderRadius.circular(40)
-        ),
-        child: Column(
-          children: <Widget>[
-            Container(
-              width: 75,
-              height: 75,
-              decoration: BoxDecoration(
-                borderRadius: BorderRadius.circular(40),
-                color: _color,
-              ),
-              child: Stack(
-                children: <Widget>[
-                  Container(
-                    height: 75,
-                    width: 75,
-                    decoration: BoxDecoration(
-                      borderRadius: BorderRadius.circular(40),
-                      color: Colors.black45,
-                    ),
-                  ),
-                  Center(
-                    child: iconName,
-                  ),
-                ],
-              )
-            ),
-            Container(
-              margin: EdgeInsets.only(top:5),
-              child: Center(
-                child: Text(categoriesName,overflow: TextOverflow.ellipsis,),
-              ),
-            )
-          ],
-        )
       ),
     );
   }

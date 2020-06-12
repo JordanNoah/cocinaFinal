@@ -517,27 +517,26 @@ class _ShowFoodState extends State<ShowFood> {
                   delegate: SliverChildBuilderDelegate(
                     (BuildContext context,index){
                       return Card(
+                        elevation: 0,
                         child: Container(
-                          margin: EdgeInsets.all(12),
+                          padding: EdgeInsets.symmetric(horizontal: 10,vertical: 10),
                           child: Row(
                             mainAxisAlignment: MainAxisAlignment.start,
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: <Widget>[
                               Container(
-                                margin: EdgeInsets.symmetric(vertical: (12)),
                                 child: CircleAvatar(
                                   radius: 25,
                                 ),
                               ),
                               Expanded(
                                 child: Container(
-                                  margin: EdgeInsets.all(12),
+                                  margin: EdgeInsets.symmetric(horizontal: 10),
                                   child: Column(
                                     crossAxisAlignment: CrossAxisAlignment.start,
                                     children: <Widget>[
                                       Container(
-                                        margin: EdgeInsets.symmetric(vertical: 5),
-                                        child: Text(comentaries[index]["user"]["names"])
+                                        child: Text(comentaries[index]["users"][0]["names"].toString())
                                       ),
                                       Container(
                                         margin: EdgeInsets.only(bottom: 5),
