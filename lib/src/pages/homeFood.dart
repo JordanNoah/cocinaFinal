@@ -10,6 +10,7 @@ import 'package:food_size/src/widgets/favoriteRecipe.dart';
 import 'package:food_size/src/widgets/mostVotedRecipe.dart';
 import 'package:food_size/src/widgets/recipeDemo.dart';
 import 'package:food_size/src/widgets/recipeDifficulty.dart';
+import 'package:food_size/src/widgets/showRate.dart';
 import 'package:http/http.dart' as http;
 import 'package:smooth_star_rating/smooth_star_rating.dart';
 
@@ -200,6 +201,7 @@ class _HomeFoodState extends State<HomeFood> {
                                                 padding: EdgeInsets.only(top:5),
                                                 child: Row(
                                                   mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                                                  crossAxisAlignment: CrossAxisAlignment.start,
                                                   children: <Widget>[
                                                     Container(
                                                       width: MediaQuery.of(context).size.width*0.60,
@@ -208,29 +210,7 @@ class _HomeFoodState extends State<HomeFood> {
                                                         crossAxisAlignment: CrossAxisAlignment.start,
                                                         children: <Widget>[
                                                           Text(recipe[index]["title"],overflow: TextOverflow.ellipsis,style: TextStyle(fontWeight: FontWeight.bold,fontSize: 17,letterSpacing: 1),),
-                                                          Row(
-                                                            children: <Widget>[
-                                                              SmoothStarRating(
-                                                                allowHalfRating: true,
-                                                                starCount: 5,
-                                                                rating: recipe[index]["recipe_comments"][0]["totalAssessment"],
-                                                                size: 15.0,
-                                                                filledIconData: Icons.star,
-                                                                halfFilledIconData: Icons.star_half,
-                                                                color: Colors.yellow,
-                                                                borderColor: Colors.black,
-                                                                spacing:0.0
-                                                              ),
-                                                              SizedBox(width: 5),
-                                                              Text(recipe[index]["recipe_comments"][0]["totalAssessment"].toString(),style: TextStyle(fontSize: 12),),
-                                                              SizedBox(width: 6,),
-                                                              recipe[index]['recipe_comments'][0]['countOfReview']>99
-                                                                ?
-                                                                  Text("(+99 reviews)",style: TextStyle(fontSize: 12),)
-                                                                    :
-                                                                      Text("("+recipe[index]["recipe_comments"][0]["countOfReview"].toString()+" reviews)",style: TextStyle(fontSize: 12),)
-                                                            ],
-                                                          ),
+                                                          ShowRate(totalAssessment: recipe[index]["totalAssessment"], countOfReview: recipe[index]["countOfReview"])
                                                         ],
                                                       ),
                                                     ),

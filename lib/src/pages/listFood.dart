@@ -3,10 +3,13 @@ import 'dart:convert';
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_staggered_grid_view/flutter_staggered_grid_view.dart';
 import 'package:food_size/src/widgets/recipeDifficulty.dart';
+import 'package:food_size/src/widgets/showRate.dart';
 import 'package:pull_to_refresh/pull_to_refresh.dart';
 
 import 'package:http/http.dart' as http;
+import 'package:smooth_star_rating/smooth_star_rating.dart';
 
 class ListFood extends StatefulWidget {
   final List data;
@@ -24,6 +27,7 @@ class _ListFoodState extends State<ListFood> {
 
   List recipes = [];
   List idRecipes = [];
+  List<StaggeredTile> _tiles;
   RefreshController _refreshController = RefreshController(initialRefresh: false);
   bool reachFinalRecipe = false;
 
@@ -48,9 +52,9 @@ class _ListFoodState extends State<ListFood> {
       responseRecipe = await http.get("http://3.23.131.0:3002/api/getRecipePerFilter?filter="+data[0]+"&idRecipes="+idRecipes.toString());
       String resRecipe = responseRecipe.body;
       final jsonRecipe = jsonDecode(resRecipe)["message"];
-      print(jsonRecipe);
       setState(() {
         recipes=jsonRecipe;
+        _tiles = _generateRandomTiles(recipes).toList();
       });
       for (var recipe in recipes) {
         idRecipes.add(recipe["idRecipe"]);
@@ -83,15 +87,15 @@ class _ListFoodState extends State<ListFood> {
         idRecipes.add(recipe["idRecipe"]);
         recipes.add(recipe);
       }
+      setState(() {
+        _tiles = _generateRandomTiles(recipes).toList();
+      });
+      _refreshController.loadComplete();
     } catch (e) {
       print(e);
+      _refreshController.loadFailed();
     }
     // if failed,use loadFailed(),if no data return,use LoadNodata()
-    if(mounted)
-    setState(() {
-
-    });
-    _refreshController.loadComplete();
   }
 
   @override
@@ -114,8 +118,8 @@ class _ListFoodState extends State<ListFood> {
           )
         ],
       ),
-      body: SafeArea(
-        child: checkConnection?SmartRefresher(
+      body:Container(
+        child: SmartRefresher(
           enablePullDown: true,
           enablePullUp: true,
           header: WaterDropHeader(),
@@ -146,77 +150,58 @@ class _ListFoodState extends State<ListFood> {
           controller: _refreshController,
           onRefresh: _onRefresh,
           onLoading: _onLoading,
-          child: ListView.builder(
-            itemBuilder: (c, i) => Container(
-              margin: EdgeInsets.all(10),
-              child: GestureDetector(
-                onTap: (){Navigator.of(context).pushNamed("/showfood",arguments: [recipes[i]['idRecipe'],true]);},
-                child: AnimatedContainer(
-                  curve: Curves.elasticIn,
-                  duration: Duration(milliseconds: 4000000),
-                  child: Card(
-                    elevation: 1,
-                    child: Row(
-                      children: <Widget>[
-                        Expanded(
-                          flex: 1,
-                          child: Container(
-                            // color: Colors.red,
-                            height: MediaQuery.of(context).size.height,
-                            margin: EdgeInsets.all(10),
-                            child: ClipRRect(
-                              borderRadius: BorderRadius.circular(10),
-                              child: Container(
-                                child: CachedNetworkImage(
-                                  imageUrl: "http://3.23.131.0:3002/"+(recipes[i]["recipe_images"][0]["route"]).replaceAll(r"\",'/'),
-                                  progressIndicatorBuilder: (context, url, downloadProgress) => 
-                                    Center(child: CircularProgressIndicator(value: downloadProgress.progress),),
-                                  errorWidget: (context, url, error) => Center(child: Icon(Icons.error),),
-                                  fit: BoxFit.cover,
-                                ),
-                              ),
-                            )
-                          )
-                        ),
-                        Expanded(
-                          flex: 2,
-                          child: Container(
-                            margin: EdgeInsets.all(10),
-                            child: ClipRRect(
-                              child: Column(
-                                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                                children: <Widget>[
-                                  Text(recipes[i]["title"].toString(),style: TextStyle(fontWeight: FontWeight.bold,letterSpacing: 1,fontSize: 18),overflow: TextOverflow.ellipsis,),
-                                  Text(recipes[i]["description"].toString(),overflow: TextOverflow.ellipsis,),
-                                  Row(
-                                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                                    children: <Widget>[
-                                      Row(
-                                        children: <Widget>[
-                                          Icon(Icons.av_timer,color: Colors.grey,),
-                                          SizedBox(width: 2.0,),
-                                          Text(recipes[i]["approximateTime"].toString(),style: TextStyle(color: Colors.grey,fontWeight: FontWeight.bold,fontSize: 10),),
-                                        ],
-                                      ),
-                                      RecipeDifficulty(recipes[i]["difficulty"]),
-                                    ],
-                                  )
-                                ],
-                              ),
-                            ),
-                          )
-                        )
-                      ],
-                    )
-                  ),
-                ),
-              ),
-            ),
-            itemExtent: 130.0,
+          child: StaggeredGridView.countBuilder(
+            primary: false,
+            crossAxisSpacing: 0,
+            mainAxisSpacing: 0,
+            addRepaintBoundaries: true,
+            crossAxisCount: 4,
+            itemBuilder: _getChild,
+            staggeredTileBuilder: _getTile,
             itemCount: recipes.length,
-          ),
-        ):Center(child: Text("Not connection"),),
+          )
+        ),
       ),
     );
   }
+  StaggeredTile _getTile(int index) => _tiles[index];
+
+  Widget _getChild(BuildContext context, int index) {
+    return GestureDetector(
+      onTap: (){Navigator.of(context).pushNamed("/showfood",arguments: [recipes[index]["idRecipe"],true]);},
+      child: Container(
+        key: ObjectKey('$index'),
+        child: Card(
+          elevation: 5,
+          margin: EdgeInsets.all(5),
+          child: Column(
+            children: <Widget>[
+              CachedNetworkImage(
+                imageUrl: "http://3.23.131.0:3002/"+(recipes[index]["recipe_images"][0]["route"]).replaceAll(r"\",'/'),
+                progressIndicatorBuilder: (context, url, downloadProgress) => 
+                  Center(child: CircularProgressIndicator(value: downloadProgress.progress),),
+                errorWidget: (context, url, error) => Center(child: Column(mainAxisAlignment: MainAxisAlignment.center,children: <Widget>[Icon(Icons.error),Text("Not found")],),),
+                fit: BoxFit.cover,
+              ),
+              Container(
+                padding: EdgeInsets.all(12),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: <Widget>[
+                    Text(recipes[index]["title"],textAlign: TextAlign.left,style: TextStyle(fontWeight: FontWeight.bold,fontSize: 16),),
+                    SizedBox(height: 5,),
+                    ShowRate(countOfReview: recipes[index]["countOfReview"],totalAssessment: recipes[index]["totalAssessment"],)
+                  ],
+                ),
+              )
+            ],
+          )
+        ),
+      ),
+    );
+  }
+}
+List<StaggeredTile> _generateRandomTiles(List recipes) {
+  return List.generate(recipes.length,
+      (i) => StaggeredTile.fit(2));
 }
