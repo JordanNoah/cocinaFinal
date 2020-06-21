@@ -1,7 +1,6 @@
 import 'package:connectivity/connectivity.dart';
 import 'package:flare_flutter/flare_actor.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter_svg/flutter_svg.dart';
 import 'package:food_size/src/pages/downloads.dart';
 import 'package:food_size/src/pages/favorites.dart';
 import 'package:food_size/src/pages/homeFood.dart';

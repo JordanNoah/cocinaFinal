@@ -46,7 +46,7 @@ class _NewRecipeState extends State<NewRecipe> {
             child: Column(
               children: <Widget>[
                 Container(
-                  margin: EdgeInsets.only(bottom: 15,left: 15,right: 15),
+                  margin: EdgeInsets.only(left: 15,right: 15,bottom: 15),
                   child: Row(
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: <Widget>[
@@ -92,13 +92,13 @@ class _NewRecipeState extends State<NewRecipe> {
                   ),
                 ),
                 Container(
-                  height: 280,
+                  height: 260,
                   width: MediaQuery.of(context).size.width,
                   child: CarouselSlider.builder(
                     itemCount: recipe.length,
                     itemBuilder: (BuildContext context, int index) =>
                       Container(
-                        padding: EdgeInsets.all(10),
+                        padding: EdgeInsets.symmetric(horizontal:10),
                         width: MediaQuery.of(context).size.width,
                         child: GestureDetector(
                           onTap: (){Navigator.of(context).pushNamed("/showfood",arguments: [recipe[index]["idRecipe"],true]);},

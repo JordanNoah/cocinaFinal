@@ -40,7 +40,7 @@ class _RandomRecipeState extends State<RandomRecipe> {
       builder: (BuildContext context, AsyncSnapshot snapshot) {
         if (snapshot.hasError) {
           return Container(
-            margin: EdgeInsets.only(bottom: 15,left: 15,right: 15),
+            margin: EdgeInsets.only(left: 15,right: 15,bottom: 15),
             child: Column(
               children: <Widget>[
                 Row(
@@ -108,18 +108,21 @@ class _RandomRecipeState extends State<RandomRecipe> {
             }
 
             return Container(
-              margin: EdgeInsets.only(bottom: 15,left: 15,right: 15),
+              margin: EdgeInsets.symmetric(horizontal: 15),
               child: Column(
                 children: <Widget>[
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                    children: <Widget>[
-                      Text("Random",style: TextStyle(fontWeight: FontWeight.bold,color: Colors.blueGrey,fontSize: 16),),
-                      GestureDetector(
-                        onTap: (){Navigator.pushNamed(context, '/listFood',arguments: ["Random",1]);},
-                        child: Text("Show more",style: TextStyle(color: Colors.blueAccent),),
-                      )
-                    ],
+                  Container(
+                    margin: EdgeInsets.symmetric(vertical: 10),
+                    child: Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: <Widget>[
+                        Text("Random",style: TextStyle(fontWeight: FontWeight.bold,color: Colors.blueGrey,fontSize: 16),),
+                        GestureDetector(
+                          onTap: (){Navigator.pushNamed(context, '/listFood',arguments: ["Random",1]);},
+                          child: Text("Show more",style: TextStyle(color: Colors.blueAccent),),
+                        )
+                      ],
+                    ),
                   ),
                   StaggeredGridView.countBuilder(
                     primary: false,

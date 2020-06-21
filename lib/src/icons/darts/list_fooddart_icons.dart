@@ -15,8 +15,8 @@
 ///
 import 'package:flutter/widgets.dart';
 
-class List_fooddart {
-  List_fooddart._();
+class Listfooddart {
+  Listfooddart._();
 
   static const _kFontFam = 'List_fooddart';
   static const _kFontPkg = null;

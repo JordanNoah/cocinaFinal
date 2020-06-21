@@ -34,7 +34,7 @@ class _CategorieListState extends State<CategorieList> {
         builder: (BuildContext context, AsyncSnapshot snapshot) {
         if (snapshot.hasError) {
             return Container(
-              margin: EdgeInsets.only(top: 20,left: 15,right: 15),
+              margin: EdgeInsets.all(15),
               child: Column(
                 children: <Widget>[
                   Row(
@@ -57,11 +57,12 @@ class _CategorieListState extends State<CategorieList> {
         if (snapshot.connectionState == ConnectionState.done) {
             List categories = snapshot.data;
             return Container(
+              margin: EdgeInsets.symmetric(horizontal: 15),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: <Widget>[
                   Container(
-                    margin: EdgeInsets.only(bottom: 5,left: 15,right: 15),
+                    margin: EdgeInsets.symmetric(vertical: 10),
                     child: Row(
                       mainAxisAlignment: MainAxisAlignment.spaceBetween,
                       children: <Widget>[
@@ -74,43 +75,42 @@ class _CategorieListState extends State<CategorieList> {
                     ),
                   ),
                   Container(
-                    height: 80,
+                    height: 70,
                     child: ListView.builder(
                       scrollDirection: Axis.horizontal,
                       itemCount: categories.length,
                       itemBuilder: (BuildContext context, int index) {
-                      return Card(
-                        elevation: 5,
-                        margin: EdgeInsets.all(10),
-                        child: GestureDetector(
-                          onTap: (){Navigator.pushNamed(context, '/listFood',arguments: [categories[index]["name"]]);},
-                          child: Container(
-                            padding: EdgeInsets.all(10),
-                            child: Row(
-                              children: <Widget>[
-                                Container(
-                                  width: 30,
-                                  child: CachedNetworkImage(
-                                    imageUrl: "http://3.23.131.0:3002/"+(categories[index]["icon"]).replaceAll(r"\",'/'),
-                                    progressIndicatorBuilder: (context, url, downloadProgress) => 
-                                      Center(child: CircularProgressIndicator(value: downloadProgress.progress),),
-                                    errorWidget: (context, url, error) => Center(child: Column(mainAxisAlignment: MainAxisAlignment.center,children: <Widget>[Icon(Icons.error),Text("Not found")],),),
-                                    fit: BoxFit.cover,
+                        return Card(
+                          elevation: 5,
+                          child: GestureDetector(
+                            onTap: (){Navigator.pushNamed(context, '/listFood',arguments: [categories[index]["name"]]);},
+                            child: Container(
+                              padding: EdgeInsets.all(10),
+                              child: Row(
+                                children: <Widget>[
+                                  Container(
+                                    width: 30,
+                                    child: CachedNetworkImage(
+                                      imageUrl: "http://3.23.131.0:3002/"+(categories[index]["icon"]).replaceAll(r"\",'/'),
+                                      progressIndicatorBuilder: (context, url, downloadProgress) => 
+                                        Center(child: CircularProgressIndicator(value: downloadProgress.progress),),
+                                      errorWidget: (context, url, error) => Center(child: Column(mainAxisAlignment: MainAxisAlignment.center,children: <Widget>[Icon(Icons.error),Text("Not found")],),),
+                                      fit: BoxFit.cover,
+                                    ),
                                   ),
-                                ),
-                                Container(
-                                  margin: EdgeInsets.only(left: 10),
-                                  child: Text(
-                                    categories[index]["name"][0].toString().toUpperCase()+categories[index]["name"].toString().substring(1),
-                                    style: TextStyle(fontWeight: FontWeight.bold,),
-                                  ),
-                                )
-                              ],
-                            )
+                                  Container(
+                                    margin: EdgeInsets.only(left: 10),
+                                    child: Text(
+                                      categories[index]["name"][0].toString().toUpperCase()+categories[index]["name"].toString().substring(1),
+                                      style: TextStyle(fontWeight: FontWeight.bold,),
+                                    ),
+                                  )
+                                ],
+                              )
+                            ),
                           ),
-                        ),
-                      );
-                    },
+                        );
+                      },
                     ),
                   )
                 ],
@@ -118,7 +118,7 @@ class _CategorieListState extends State<CategorieList> {
             );
         } else {
           return Container(
-            margin: EdgeInsets.only(top: 20,left: 15,right: 15),
+            margin: EdgeInsets.all(15),
             child: Column(
               children: <Widget>[
                 Row(

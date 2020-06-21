@@ -4,12 +4,10 @@ import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_staggered_grid_view/flutter_staggered_grid_view.dart';
-import 'package:food_size/src/widgets/recipeDifficulty.dart';
 import 'package:food_size/src/widgets/showRate.dart';
 import 'package:pull_to_refresh/pull_to_refresh.dart';
 
 import 'package:http/http.dart' as http;
-import 'package:smooth_star_rating/smooth_star_rating.dart';
 
 class ListFood extends StatefulWidget {
   final List data;

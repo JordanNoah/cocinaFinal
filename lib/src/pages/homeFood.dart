@@ -7,7 +7,6 @@ import 'package:food_size/src/widgets/categorieList.dart';
 import 'package:food_size/src/widgets/mostVotedRecipe.dart';
 import 'package:food_size/src/widgets/newRecipe.dart';
 import 'package:food_size/src/widgets/randomRecipe.dart';
-import 'package:food_size/src/widgets/recipeDemo.dart';
 import 'package:http/http.dart' as http;
 
 class HomeFood extends StatefulWidget {
@@ -63,9 +62,11 @@ class _HomeFoodState extends State<HomeFood> {
             IconButton(
               icon: Icon(Icons.arrow_back_ios),
               onPressed: () {
-                indexSelected !=0 ? setState(() {
-                  indexSelected=0;
-                }):null;
+                if(indexSelected !=0){
+                  setState(() {
+                    indexSelected=0;
+                  });
+                }
               },
               color: indexSelected != 0 ? Colors.black : Colors.grey
             ),
@@ -73,31 +74,26 @@ class _HomeFoodState extends State<HomeFood> {
             IconButton(
               icon: Icon(Icons.arrow_forward_ios),
               onPressed: (){
-                indexSelected ==1 ? null : setState(() {
-                  indexSelected=1;
-                });
+                if(indexSelected == 1){
+                  setState(() {
+                    indexSelected=1;
+                  });
+                }
               },
               color: indexSelected == 1 ? Colors.grey : Colors.black,
             ),
           ],
         ),
       ),
-      body: SafeArea(
-        child: Container(
-          child: CustomScrollView(
-            physics: BouncingScrollPhysics(),
-            slivers: <Widget>[
-              SliverList(
-                delegate: SliverChildListDelegate([
-                  NewRecipe(liked: liked,),
-                  MostVotedRecipe(),
-                  CategorieList(),
-                  RandomRecipe(),
-                ]),
-              ),
-            ],
-          ),
-        ),
+      body: SingleChildScrollView(
+        child: Column(
+          children: <Widget>[
+            NewRecipe(liked: liked,),
+            MostVotedRecipe(),
+            CategorieList(),
+            RandomRecipe(),
+          ],
+        )
       ),
     );
   }
