@@ -24,7 +24,7 @@ class _ShowRateState extends State<ShowRate> {
           SmoothStarRating(
             allowHalfRating: true,
             starCount: 5,
-            rating: countOfReview==0?0.00: totalAssessment,
+            rating: countOfReview==0?0.00: totalAssessment.toDouble(),
             size: 11.0,
             filledIconData: Icons.star,
             halfFilledIconData: Icons.star_half,
@@ -33,7 +33,7 @@ class _ShowRateState extends State<ShowRate> {
             spacing:0.0
           ),
           SizedBox(width: 5),
-          Text(countOfReview==0?"0.00":totalAssessment.toString(),style: TextStyle(fontSize: 9),),
+          Text(countOfReview==0?"0.00":totalAssessment.toDouble().toString(),style: TextStyle(fontSize: 9),),
           SizedBox(width: 5,),
           countOfReview>99
             ?
