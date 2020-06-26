@@ -79,16 +79,22 @@ class ClientDatabaseProvider{
     return responseRecipe.isNotEmpty ? Recipe.fromMap(responseRecipe.first) : null;
   }
   
-  Future<List<StepsRecipe>> getStepsRecipeWithId(int id) async {
+  Future<List<dynamic>> getStepsRecipeWithId(int id) async {
     final db = await database;
     List<Map<String,dynamic>> responseSteps = await db.query("steps_recipes",where:"idRecipe = ?",whereArgs: [id]);
-    return responseSteps.map((f)=>StepsRecipe.fromMap(f)).toList();
+    return responseSteps;
   }
 
   Future <List> getIngredientsRecipeWithId(int id) async {
     final db = await database;
     List responseIngredients = await db.rawQuery("SELECT * from recipe_ingredients INNER JOIN ingredients on ingredients.idIngredient=recipe_ingredients.idIngredient WHERE idRecipe = $id");
     return responseIngredients;
+  }
+
+  Future<List<dynamic>> getRecipeAsList(int id) async {
+    final db = await database;
+    var responseRecipe = await db.query("recipes", where: "idRecipe = ?", whereArgs: [id]);
+    return responseRecipe;
   }
 
   getImage(int id) async {
@@ -101,6 +107,12 @@ class ClientDatabaseProvider{
     final db = await database;
     List responseImages = await db.rawQuery("SELECT route FROM image_recipes where principal = 1 AND idRecipe = $id LIMIT 1");
     return responseImages.length==0?null:responseImages[0]["route"];
+  }
+
+  getImgIngredient(int id) async{
+    final db = await database;
+    List responseImages = await db.rawQuery("SELECT routeImage FROM ingredients where idIngredient = $id LIMIT 1");
+    return responseImages.length==0?null:responseImages[0]["routeImage"];
   }
 
   removeRecipe(int idRecipe) async {

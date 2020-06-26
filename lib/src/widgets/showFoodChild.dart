@@ -22,7 +22,7 @@ class ShowFoodChild extends StatefulWidget {
   final List allImages;
   final List recipeImages;
   final bool liked;
-  ShowFoodChild({Key key,@required this.data,@required this.recipe,@required this.recipeSteps,@required this.recipeIngredients,@required this.recipeComments,@required this.allImages,@required this.recipeImages,@required this.liked}) : super(key: key);
+  ShowFoodChild({Key key,@required this.data,@required this.recipe,@required this.recipeSteps,@required this.recipeIngredients, this.recipeComments, this.allImages, @required this.recipeImages, this.liked}) : super(key: key);
 
   @override
   _ShowFoodChildState createState() => _ShowFoodChildState(this.data,this.recipe,this.recipeSteps,this.recipeIngredients,this.recipeComments,this.allImages,this.recipeImages,this.liked);
@@ -46,13 +46,17 @@ class _ShowFoodChildState extends State<ShowFoodChild> {
   @override
   void initState() { 
     super.initState();
+    getDirectory();
   }
 
   Future getDirectory() async {
     final Directory extDir = await getExternalStorageDirectory();
-    setState(() {
-      extDirec = extDir;
-    });
+    if(mounted){
+      setState(() {
+        extDirec = extDir;
+      });
+    }
+    print(extDirec);
   }
 
   @override
@@ -100,7 +104,13 @@ class _ShowFoodChildState extends State<ShowFoodChild> {
               }),
             ),
             actions: <Widget>[
-              FavoriteRecipe(liked: liked,idRecipe: recipe.idRecipe,),
+              Builder(builder: (BuildContext context){
+                if(data[1]){
+                  return FavoriteRecipe(liked: liked,idRecipe: recipe.idRecipe,);
+                }else{
+                  return Container();
+                }
+              }),
               MenuRecipe(recipeInformation: recipe,recipeSteps: recipeSteps,recipeIngredients: recipeIngredients,allImages: allImages,recipeImages: recipeImages,)
             ],
           ),
@@ -201,7 +211,14 @@ class _ShowFoodChildState extends State<ShowFoodChild> {
                                     fit: BoxFit.cover,
                                   );
                                 }else{
-                                  return Image.file(File(extDirec.path+'/recipes/ingredient/'+recipeIngredients[index]["ingredient"]["routeImage"]),fit: BoxFit.cover,);
+                                  return FutureBuilder(
+                                    future: ClientDatabaseProvider.db.getImgIngredient(recipeIngredients[index]["idIngredient"]),
+                                    builder: (BuildContext context, AsyncSnapshot snapshot) {
+                                      var image = snapshot.data!=null ? File(extDirec.path+'/recipes/ingredient/${snapshot.data}'):null;
+                                      return image == null ? Center(child: CircularProgressIndicator(),): Image.file(image,fit: BoxFit.cover,);
+                                    },
+                                  );
+                                  // return Image.file(File(extDirec.path+'/recipes/ingredient/'+recipeIngredients[index]["routeImage"]),fit: BoxFit.cover,);
                                 }
                               })
                             ),
@@ -214,7 +231,7 @@ class _ShowFoodChildState extends State<ShowFoodChild> {
                                 mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                                 crossAxisAlignment: CrossAxisAlignment.start,
                                 children: <Widget>[
-                                  Text(recipeIngredients[index]["ingredient"]["name"],overflow: TextOverflow.ellipsis,style: TextStyle(fontWeight: FontWeight.bold,fontSize: 16),),
+                                  Text(data[1]?recipeIngredients[index]["ingredient"]["name"]:recipeIngredients[index]["name"].toString(),overflow: TextOverflow.ellipsis,style: TextStyle(fontWeight: FontWeight.bold,fontSize: 16),),
                                   Text((recipeIngredients[index]["quantity"]).toString(),overflow: TextOverflow.ellipsis,)
                                 ],
                               ),
@@ -231,6 +248,21 @@ class _ShowFoodChildState extends State<ShowFoodChild> {
               },
               childCount: recipeIngredients.length
             ),
+          ),
+          SliverList(
+            delegate: SliverChildListDelegate([
+              Container(
+                width: MediaQuery.of(context).size.width,
+                margin: EdgeInsets.only(top: 30),
+                child: Column(
+                  children: <Widget>[
+                    Container(
+                      child: Text("Steps",style: TextStyle(color: Colors.grey,fontSize: 24,fontWeight: FontWeight.w600,letterSpacing: 1),),
+                    ),
+                  ],
+                ),
+              )
+            ])
           ),
           SliverList(
             delegate: SliverChildBuilderDelegate(
@@ -276,17 +308,23 @@ class _ShowFoodChildState extends State<ShowFoodChild> {
           ),
           SliverList(
             delegate: SliverChildListDelegate([
-              Container(
-                width: MediaQuery.of(context).size.width,
-                margin: EdgeInsets.only(top: 30),
-                child: Column(
-                  children: <Widget>[
-                    Container(
-                      child: Text("Comentarios",style: TextStyle(color: Colors.grey,fontSize: 24,fontWeight: FontWeight.w600,letterSpacing: 1),),
+              Builder(builder: (BuildContext context) {
+                if(data[1]){
+                  return Container(
+                    width: MediaQuery.of(context).size.width,
+                    margin: EdgeInsets.only(top: 30),
+                    child: Column(
+                      children: <Widget>[
+                        Container(
+                          child: Text("Comentarios",style: TextStyle(color: Colors.grey,fontSize: 24,fontWeight: FontWeight.w600,letterSpacing: 1),),
+                        ),
+                      ],
                     ),
-                  ],
-                ),
-              )
+                  );
+                }else{
+                  return Container();
+                }
+              },)
             ])
           ),
           SliverList(
@@ -410,7 +448,7 @@ class _ShowFoodChildState extends State<ShowFoodChild> {
       context: context,
       builder: (BuildContext context){
         return AlertDialog(
-          title: Text(ingredient["ingredient"]["name"].toString()),
+          title: data[1]?Text(ingredient["ingredient"]["name"].toString()):Text(ingredient["name"].toString()),
           elevation: 5,
           content: Container(
             child: SingleChildScrollView(
@@ -429,7 +467,7 @@ class _ShowFoodChildState extends State<ShowFoodChild> {
                           fit: BoxFit.cover,
                         );
                       }else{
-                        return Image.file(File(extDirec.path+'/recipes/ingredient/'+ingredient["ingredient"]["routeImage"]),fit: BoxFit.cover,);
+                        return Image.file(File(extDirec.path+'/recipes/ingredient/'+ingredient["routeImage"]),fit: BoxFit.cover,);
                       }
                     })
                   ),

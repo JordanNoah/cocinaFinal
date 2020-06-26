@@ -36,13 +36,6 @@ class _ListFoodState extends State<ListFood> {
     getRecipes();
   }
 
-  // Future connectionState() async {
-  //   bool actualStateConnection = await DataConnectionChecker().hasConnection;
-  //   setState((){
-  //     checkConnection = actualStateConnection;
-  //   });
-  // }
-
   Future getRecipes() async{
     idRecipes.clear();
     try {
