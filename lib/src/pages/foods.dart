@@ -69,7 +69,7 @@ class _FoodsState extends State<Foods> {
         onPressed: (){menuFullScreen();},
         child: Container(
           padding: EdgeInsets.all(8),
-          child: FlareActor('assets/animations/salad.flr'),
+          child: FlareActor('assets/animations/salad.flr',),
         ),
         backgroundColor: Colors.deepOrangeAccent,
       ),

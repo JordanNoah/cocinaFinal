@@ -53,7 +53,6 @@ class _FavoritesState extends State<Favorites> {
       for (var recipe in recipes) {
         idRecipes.add(recipe["idRecipe"]);
       }
-      print(recipes);
     } on Exception catch (e) {
       if(e.toString().contains('SocketException')){
         setState(() {
@@ -87,7 +86,6 @@ class _FavoritesState extends State<Favorites> {
       });
       _refreshController.loadComplete();
     } catch (e) {
-      print(e);
       _refreshController.loadFailed();
     }
     // if failed,use loadFailed(),if no data return,use LoadNodata()

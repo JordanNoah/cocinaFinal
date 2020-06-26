@@ -90,7 +90,6 @@ class _ListFoodState extends State<ListFood> {
       });
       _refreshController.loadComplete();
     } catch (e) {
-      print(e);
       _refreshController.loadFailed();
     }
     // if failed,use loadFailed(),if no data return,use LoadNodata()

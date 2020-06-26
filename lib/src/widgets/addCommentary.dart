@@ -176,7 +176,6 @@ class _AddCommentaryState extends State<AddCommentary> {
                       FlatButton(
                         onPressed: () {
                           var respones = sendComentary(assessment,commentary.text,idUser,idRecipe); // To close the dialog
-                          print(respones);
                         },
                         child: Text("Save",style: TextStyle(color: Colors.green),),
                       ),

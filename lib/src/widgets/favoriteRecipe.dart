@@ -49,14 +49,11 @@ class _FavoriteRecipeState extends State<FavoriteRecipe> {
           }
           controller.forward(from:0.0);
         }else{
-          print(responseDecode);
         }
         setState(() {});
       }else{
-        print(response);
       }
     } on Exception catch (e) {
-      print(e);
     }
   }
 

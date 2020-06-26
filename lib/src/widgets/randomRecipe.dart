@@ -20,7 +20,6 @@ class _RandomRecipeState extends State<RandomRecipe> {
       http.Response responseRandomRecipe = await http.get('http://3.23.131.0:3002/api/getRandomRecipe?idExisting=[]');
       if(responseRandomRecipe.statusCode == HttpStatus.ok){
         var result = jsonDecode(responseRandomRecipe.body);
-        print(result);
         // setState(() {
         //   _tiles = _generateRandomTiles(result).toList();
         // });
